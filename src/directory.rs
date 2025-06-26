@@ -2,12 +2,24 @@ use crate::util::is_file_name_char;
 use anyhow::{Error, bail};
 use serde::de::Error as SerdeError;
 use serde::{Deserialize, Deserializer, Serialize};
+use std::cmp::Ordering;
 use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::result::Result as StdResult;
 
-#[derive(Clone, Copy, Debug, Serialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
 pub struct Directory(char);
+
+impl PartialOrd for Directory {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match (self.0, other.0) {
+            (a, b) if a == b => Some(Ordering::Equal),
+            ('$', _) => Some(Ordering::Less),
+            (_, '$') => Some(Ordering::Greater),
+            (a, b) => Some(a.cmp(&b)),
+        }
+    }
+}
 
 impl TryFrom<char> for Directory {
     type Error = Error;

@@ -40,14 +40,32 @@ impl Catalogue {
         let boot_option = BootOption::from_catalogue_bytes(bytes)?;
         let disc_size = DiscSize::from_catalogue_bytes(bytes)?;
         let entries = CatalogueEntry::from_catalogue_bytes(bytes, file_offset.number())?;
-        Ok(Self {
+        Ok(Self::new(
             disc_title,
             cycle_number,
             file_offset,
             boot_option,
             disc_size,
             entries,
-        })
+        ))
+    }
+
+    pub fn new(
+        disc_title: DiscTitle,
+        cycle_number: CycleNumber,
+        file_offset: FileOffset,
+        boot_option: BootOption,
+        disc_size: DiscSize,
+        entries: Vec<CatalogueEntry>,
+    ) -> Self {
+        Self {
+            disc_title,
+            cycle_number,
+            file_offset,
+            boot_option,
+            disc_size,
+            entries,
+        }
     }
 
     pub fn show(&self) {

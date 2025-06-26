@@ -8,6 +8,7 @@ mod cycle_number;
 mod directory;
 mod disc_title;
 mod extract;
+mod file_count;
 mod file_descriptor;
 mod file_name;
 mod file_offset;
