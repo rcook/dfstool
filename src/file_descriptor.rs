@@ -1,9 +1,9 @@
 use crate::directory::Directory;
 use crate::file_name::FileName;
 use crate::u18::{Address, Length};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct FileDescriptor {
     pub file_name: FileName,
     pub directory: Directory,

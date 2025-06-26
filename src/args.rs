@@ -19,6 +19,15 @@ pub enum Command {
         overwrite: bool,
     },
 
+    #[command(name = "make", about = "Make image from files and metadata")]
+    Make {
+        #[arg(required = true, value_parser = parse_absolute_path)]
+        ssd_path: PathBuf,
+
+        #[arg(long = "overwrite", short = 'f', default_value_t = false)]
+        overwrite: bool,
+    },
+
     #[command(name = "show", about = "Show catalogue")]
     Show {
         #[arg(required = true, value_parser = parse_absolute_path)]

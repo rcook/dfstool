@@ -11,6 +11,7 @@ mod extract;
 mod file_descriptor;
 mod file_name;
 mod file_offset;
+mod make;
 mod run;
 mod show;
 mod u10;

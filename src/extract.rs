@@ -1,4 +1,5 @@
 use crate::catalogue::Catalogue;
+use crate::constants::{SSD_CONTENT_FILE_EXT, SSD_METADATA_FILE_EXT};
 use anyhow::{Result, bail};
 use std::fmt::Display;
 use std::fs::File;
@@ -16,17 +17,27 @@ pub fn do_extract(ssd_path: &Path, overwrite: bool) -> Result<()> {
         ssd_file.seek(SeekFrom::Start(entry.start_sector.as_u64() * 256))?;
         ssd_file.read_exact(&mut bytes)?;
 
-        let local_file_name = format!("{}_{}.ssdfile", d.directory, d.file_name);
-        let mut local_file = open_for_write(local_file_name, overwrite)?;
-        local_file.write_all(&bytes)?;
+        let content_file_name = format!(
+            "{}_{}.{ext}",
+            d.directory,
+            d.file_name,
+            ext = SSD_CONTENT_FILE_EXT
+        );
+        let mut f = open_for_write(content_file_name, overwrite)?;
+        f.write_all(&bytes)?;
 
-        let local_metadata_file_name = format!("{}_{}.ssdfile.json", d.directory, d.file_name);
-        let local_metadata_file = if overwrite {
-            File::create(local_metadata_file_name)?
+        let metadata_file_name = format!(
+            "{}_{}.{ext}",
+            d.directory,
+            d.file_name,
+            ext = SSD_METADATA_FILE_EXT
+        );
+        let f = if overwrite {
+            File::create(metadata_file_name)?
         } else {
-            File::create_new(local_metadata_file_name)?
+            File::create_new(metadata_file_name)?
         };
-        serde_json::to_writer_pretty(local_metadata_file, d)?;
+        serde_json::to_writer_pretty(f, d)?;
     }
 
     Ok(())
