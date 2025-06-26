@@ -1,9 +1,8 @@
 use crate::catalogue_bytes::CatalogueBytes;
 use crate::constants::SECTOR_SIZE;
 use crate::file_count::FileCount;
-use anyhow::{Error, Result, bail};
-use std::convert::{From, TryFrom};
-use std::result::Result as StdResult;
+use anyhow::{Result, bail};
+use std::convert::From;
 
 #[derive(Debug)]
 pub struct FileOffset(u8);
@@ -15,26 +14,31 @@ impl FileOffset {
 }
 
 impl FileOffset {
+    pub fn new(value: u8) -> Result<Self> {
+        if !Self::is_in_range(value) {
+            bail!("invalid file offset {value}")
+        }
+
+        Ok(Self(value))
+    }
+
     pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
-        let offset = bytes[SECTOR_SIZE + 5];
-        offset.try_into()
+        let value = bytes[SECTOR_SIZE + 5];
+        Self::new(value)
+    }
+
+    pub fn write_to(&self, bytes: &mut [u8]) -> Result<()> {
+        bytes[SECTOR_SIZE + 5] = self.0;
+        Ok(())
+    }
+
+    fn is_in_range(value: u8) -> bool {
+        (value & 0b00000111) == 0
     }
 }
 
 impl From<FileCount> for FileOffset {
     fn from(value: FileCount) -> Self {
         Self(value.as_u8() << 3)
-    }
-}
-
-impl TryFrom<u8> for FileOffset {
-    type Error = Error;
-
-    fn try_from(value: u8) -> StdResult<Self, Self::Error> {
-        if (value & 0b00000111) != 0 {
-            bail!("invalid file offset {value}")
-        }
-
-        Ok(Self(value))
     }
 }

@@ -51,4 +51,12 @@ impl DiscSize {
         assert!((2..=1023).contains(&disc_size));
         disc_size.try_into()
     }
+
+    pub fn write_to(&self, bytes: &mut [u8]) -> Result<()> {
+        let hi = (self.0 >> 8) as u8;
+        let lo = (self.0 & 0xff) as u8;
+        bytes[SECTOR_SIZE + 7] = lo;
+        bytes[SECTOR_SIZE + 6] |= hi;
+        Ok(())
+    }
 }

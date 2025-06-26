@@ -68,6 +68,16 @@ impl Catalogue {
         }
     }
 
+    pub fn write_to(&self, bytes: &mut [u8]) -> Result<()> {
+        self.disc_title.write_to(bytes)?;
+        self.cycle_number.write_to(bytes)?;
+        self.file_offset.write_to(bytes)?;
+        self.boot_option.write_to(bytes)?;
+        self.disc_size.write_to(bytes)?;
+        CatalogueEntry::write_to(bytes, &self.entries)?;
+        Ok(())
+    }
+
     pub fn show(&self) {
         println!("Title: \"{}\"", self.disc_title);
         println!("Cycle number: {}", self.cycle_number);

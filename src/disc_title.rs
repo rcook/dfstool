@@ -17,6 +17,12 @@ impl DiscTitle {
         let s = title.trim_end_matches(' ').trim_end_matches('\0');
         s.parse()
     }
+
+    pub fn write_to(&self, bytes: &mut [u8]) -> Result<()> {
+        let temp = self.0.as_bytes();
+        bytes[0..temp.len()].copy_from_slice(temp);
+        Ok(())
+    }
 }
 
 impl FromStr for DiscTitle {

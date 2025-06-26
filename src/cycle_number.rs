@@ -1,30 +1,50 @@
 use crate::catalogue_bytes::CatalogueBytes;
 use crate::constants::SECTOR_SIZE;
-use anyhow::{Error, Result, bail};
-use std::convert::TryFrom;
+use anyhow::{Result, bail};
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::result::Result as StdResult;
 
 #[derive(Debug)]
 pub struct CycleNumber(u8);
 
 impl CycleNumber {
-    pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
-        bytes[SECTOR_SIZE + 4].try_into()
-    }
-}
-
-impl TryFrom<u8> for CycleNumber {
-    type Error = Error;
-
-    fn try_from(value: u8) -> StdResult<Self, Self::Error> {
-        let hi = value >> 4;
-        let lo = value & 0b00001111;
-        if hi > 9 || lo > 9 {
+    pub fn new(value: u8) -> Result<Self> {
+        if !Self::is_in_range(value) {
             bail!("invalid cycle number {value}")
         }
 
-        Ok(Self(hi * 10 + lo))
+        Ok(Self(value))
+    }
+
+    pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
+        Self::new(Self::from_bcd(bytes[SECTOR_SIZE + 4])?)
+    }
+
+    pub fn write_to(&self, bytes: &mut [u8]) -> Result<()> {
+        bytes[SECTOR_SIZE + 4] = Self::to_bcd(self.0)?;
+        Ok(())
+    }
+
+    fn is_in_range(value: u8) -> bool {
+        value <= 99
+    }
+
+    fn from_bcd(value: u8) -> Result<u8> {
+        let hi = value >> 4;
+        let lo = value & 0b00001111;
+        if hi > 9 || lo > 9 {
+            bail!("invalid BCD byte {value}")
+        }
+
+        Ok(hi * 10 + lo)
+    }
+
+    fn to_bcd(value: u8) -> Result<u8> {
+        if !Self::is_in_range(value) {
+            bail!("cannot convert {value} to BCD")
+        }
+
+        let (q, r) = (value / 10, value % 10);
+        Ok((q << 4) + r)
     }
 }
 

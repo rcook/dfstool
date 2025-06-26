@@ -19,6 +19,10 @@ impl CatalogueEntry {
             .collect()
     }
 
+    pub fn write_to(_bytes: &mut [u8], _entries: &[Self]) -> Result<()> {
+        todo!()
+    }
+
     pub fn new(descriptor: FileDescriptor, length: Length, start_sector: StartSector) -> Self {
         Self {
             descriptor,
