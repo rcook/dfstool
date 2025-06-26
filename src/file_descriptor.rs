@@ -1,6 +1,6 @@
 use crate::directory::Directory;
 use crate::file_name::FileName;
-use crate::u18::{Address, Length};
+use crate::u18::Address;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -10,7 +10,6 @@ pub struct FileDescriptor {
     pub locked: bool,
     pub load_address: Address,
     pub execution_address: Address,
-    pub length: Length,
 }
 
 impl FileDescriptor {
@@ -20,7 +19,6 @@ impl FileDescriptor {
         locked: bool,
         load_address: Address,
         execution_address: Address,
-        length: Length,
     ) -> Self {
         Self {
             file_name,
@@ -28,7 +26,6 @@ impl FileDescriptor {
             locked,
             load_address,
             execution_address,
-            length,
         }
     }
 }

@@ -13,7 +13,7 @@ pub fn do_extract(ssd_path: &Path, overwrite: bool) -> Result<()> {
     for entry in &catalogue.entries {
         let d = &entry.descriptor;
 
-        let mut bytes = vec![0; d.length.as_usize()];
+        let mut bytes = vec![0; entry.length.as_usize()];
         ssd_file.seek(SeekFrom::Start(entry.start_sector.as_u64() * 256))?;
         ssd_file.read_exact(&mut bytes)?;
 

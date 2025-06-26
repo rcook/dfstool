@@ -56,7 +56,7 @@ impl Catalogue {
                 file_name = d.file_name.to_string(),
                 load_address = d.load_address,
                 execution_address = d.execution_address,
-                length = d.length,
+                length = entry.length,
                 start_sector = entry.start_sector,
                 extra = extra
             )

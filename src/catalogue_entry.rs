@@ -2,11 +2,13 @@ use crate::catalogue_bytes::CatalogueBytes;
 use crate::constants::SECTOR_SIZE;
 use crate::file_descriptor::FileDescriptor;
 use crate::u10::StartSector;
+use crate::u18::Length;
 use anyhow::Result;
 
 #[derive(Debug)]
 pub struct CatalogueEntry {
     pub descriptor: FileDescriptor,
+    pub length: Length,
     pub start_sector: StartSector,
 }
 
@@ -47,8 +49,8 @@ impl CatalogueEntry {
                 locked,
                 load_address,
                 execution_address,
-                length,
             ),
+            length,
             start_sector,
         })
     }
