@@ -1,4 +1,5 @@
 use crate::args::{Args, Command};
+use crate::detokenize::do_detokenize;
 use crate::extract::do_extract;
 use crate::make::do_make;
 use crate::show::do_show;
@@ -7,6 +8,7 @@ use clap::Parser;
 
 pub fn run() -> Result<()> {
     match Args::parse().command {
+        Command::Detokenize { path, overwrite } => do_detokenize(&path, overwrite)?,
         Command::Extract {
             ssd_path,
             overwrite,

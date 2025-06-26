@@ -5,6 +5,7 @@ mod catalogue_bytes;
 mod catalogue_entry;
 mod constants;
 mod cycle_number;
+mod detokenize;
 mod directory;
 mod disc_title;
 mod extract;

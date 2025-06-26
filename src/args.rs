@@ -10,6 +10,15 @@ pub struct Args {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    #[command(name = "detokenize", about = "Detokenize BBC BASIC program")]
+    Detokenize {
+        #[arg(required = true, value_parser = parse_absolute_path)]
+        path: PathBuf,
+
+        #[arg(long = "overwrite", short = 'f', default_value_t = false)]
+        overwrite: bool,
+    },
+
     #[command(name = "extract", about = "Extract files and metadata")]
     Extract {
         #[arg(required = true, value_parser = parse_absolute_path)]

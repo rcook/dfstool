@@ -1,4 +1,5 @@
 /target
 *.ssd
 *.ssdfile
+*.ssdfile.bas
 *.ssdfile.json
