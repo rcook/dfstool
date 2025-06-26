@@ -1,0 +1,26 @@
+use crate::util::is_file_name_char;
+use anyhow::{Error, bail};
+use std::convert::TryFrom;
+use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::result::Result as StdResult;
+
+#[derive(Clone, Copy, Debug)]
+pub struct Directory(char);
+
+impl TryFrom<char> for Directory {
+    type Error = Error;
+
+    fn try_from(value: char) -> StdResult<Self, Self::Error> {
+        if !is_file_name_char(value) {
+            bail!("invalid directory {value}")
+        }
+
+        Ok(Self(value))
+    }
+}
+
+impl Display for Directory {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(f, "{c}", c = self.0)
+    }
+}
