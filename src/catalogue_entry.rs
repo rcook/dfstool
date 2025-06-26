@@ -81,6 +81,7 @@ impl CatalogueEntry {
         let s = self.descriptor.file_name.as_str();
         let len = s.len();
         bytes[offset..offset + len].copy_from_slice(s.as_bytes());
+        bytes[offset + len..offset + 7].fill(32);
         bytes[offset + 7] = (if self.descriptor.locked { 0x80 } else { 0 })
             | self.descriptor.directory.as_char() as u8;
 
