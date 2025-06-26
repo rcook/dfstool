@@ -1,4 +1,6 @@
-use anyhow::{Error, bail};
+use crate::catalogue_bytes::CatalogueBytes;
+use crate::constants::SECTOR_SIZE;
+use anyhow::{Error, Result, bail};
 use std::convert::TryFrom;
 use std::result::Result as StdResult;
 
@@ -8,6 +10,13 @@ pub struct FileOffset(u8);
 impl FileOffset {
     pub fn number(&self) -> u8 {
         self.0 >> 3
+    }
+}
+
+impl FileOffset {
+    pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
+        let offset = bytes[SECTOR_SIZE + 5];
+        offset.try_into()
     }
 }
 

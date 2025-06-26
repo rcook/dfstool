@@ -1,4 +1,6 @@
-use anyhow::bail;
+use crate::catalogue_bytes::CatalogueBytes;
+use crate::constants::SECTOR_SIZE;
+use anyhow::{Result, bail};
 use std::convert::TryFrom;
 use std::result::Result as StdResult;
 
@@ -9,6 +11,14 @@ pub enum BootOption {
     Load = 1,
     Run = 2,
     Exec = 3,
+}
+
+impl BootOption {
+    pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
+        let temp = bytes[SECTOR_SIZE + 6];
+        assert_eq!(0, temp & 0b11001100);
+        temp.try_into()
+    }
 }
 
 impl TryFrom<u8> for BootOption {

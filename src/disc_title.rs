@@ -1,11 +1,23 @@
+use crate::catalogue_bytes::CatalogueBytes;
+use crate::constants::SECTOR_SIZE;
 use crate::util::is_disc_title_char;
-use anyhow::{Error, bail};
+use anyhow::{Error, Result, bail};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::result::Result as StdResult;
 use std::str::FromStr;
 
 #[derive(Clone, Debug)]
 pub struct DiscTitle(String);
+
+impl DiscTitle {
+    pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
+        let mut title = String::with_capacity(12);
+        title.push_str(str::from_utf8(&bytes[0..8])?);
+        title.push_str(str::from_utf8(&bytes[SECTOR_SIZE..SECTOR_SIZE + 4])?);
+        let s = title.trim_end_matches(' ').trim_end_matches('\0');
+        s.parse()
+    }
+}
 
 impl FromStr for DiscTitle {
     type Err = Error;

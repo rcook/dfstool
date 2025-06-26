@@ -13,6 +13,12 @@ pub struct CatalogueEntry {
 }
 
 impl CatalogueEntry {
+    pub fn from_catalogue_bytes(bytes: &CatalogueBytes, number: u8) -> Result<Vec<Self>> {
+        (0..number)
+            .map(|i| Self::from_catalogue_bytes_inner(bytes, i as usize))
+            .collect()
+    }
+
     pub fn new(descriptor: FileDescriptor, length: Length, start_sector: StartSector) -> Self {
         Self {
             descriptor,
@@ -21,8 +27,7 @@ impl CatalogueEntry {
         }
     }
 
-    // https://beebwiki.mdfs.net/Acorn_DFS_disc_format
-    pub fn from_catalogue_bytes(bytes: &CatalogueBytes, index: usize) -> Result<Self> {
+    fn from_catalogue_bytes_inner(bytes: &CatalogueBytes, index: usize) -> Result<Self> {
         let offset = (index + 1) * 8;
         let file_name_bytes = &bytes[offset..offset + 7];
         let file_name_str = str::from_utf8(file_name_bytes)?.trim_end_matches(['\0', ' ']);

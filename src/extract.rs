@@ -8,7 +8,7 @@ use std::path::Path;
 
 pub fn do_extract(ssd_path: &Path, overwrite: bool) -> Result<()> {
     let mut ssd_file = File::open(ssd_path)?;
-    let catalogue = Catalogue::read(&mut ssd_file)?;
+    let catalogue = Catalogue::from_reader(&mut ssd_file)?;
 
     for entry in &catalogue.entries {
         let d = &entry.descriptor;
