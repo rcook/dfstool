@@ -19,8 +19,11 @@ impl CatalogueEntry {
             .collect()
     }
 
-    pub fn write_to(_bytes: &mut [u8], _entries: &[Self]) -> Result<()> {
-        todo!()
+    pub fn write_to(bytes: &mut [u8], entries: &[Self]) -> Result<()> {
+        for (index, entry) in entries.iter().enumerate() {
+            entry.write_to_inner(bytes, index)?
+        }
+        Ok(())
     }
 
     pub fn new(descriptor: FileDescriptor, length: Length, start_sector: StartSector) -> Self {
@@ -70,5 +73,15 @@ impl CatalogueEntry {
             length,
             start_sector,
         ))
+    }
+
+    fn write_to_inner(&self, bytes: &mut [u8], index: usize) -> Result<()> {
+        let offset = (index + 1) * 8;
+        let s = self.descriptor.file_name.as_str();
+        let len = s.len();
+        bytes[offset..offset + len].copy_from_slice(s.as_bytes());
+        bytes[offset + 7] = (if self.descriptor.locked { 0x80 } else { 0 })
+            | self.descriptor.directory.as_char() as u8;
+        Ok(())
     }
 }

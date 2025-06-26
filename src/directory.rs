@@ -10,6 +10,12 @@ use std::result::Result as StdResult;
 #[derive(Clone, Copy, Debug, PartialEq, Serialize)]
 pub struct Directory(char);
 
+impl Directory {
+    pub fn as_char(&self) -> char {
+        self.0
+    }
+}
+
 impl PartialOrd for Directory {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self.0, other.0) {

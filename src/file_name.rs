@@ -9,6 +9,12 @@ use std::str::FromStr;
 #[derive(Clone, Debug, PartialEq, PartialOrd, Serialize)]
 pub struct FileName(String);
 
+impl FileName {
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
 impl FromStr for FileName {
     type Err = Error;
 
