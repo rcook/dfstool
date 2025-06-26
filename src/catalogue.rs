@@ -44,31 +44,22 @@ impl Catalogue {
         println!("Cycle number: {}", self.cycle_number);
         println!("File number: {}", self.file_offset.number());
         println!("Boot: {:?}", self.boot_option);
-        println!("Sectors: {:?}", self.disc_size);
+        println!("Sectors: {:?}", self.disc_size.as_u64());
         println!("Files:");
         for entry in &self.entries {
             let d = &entry.descriptor;
-            if d.locked {
-                println!(
-                    "  {directory}.{file_name:<10} {load_address} {execution_address} {length} {start_sector} (locked)",
-                    directory = d.directory,
-                    file_name = d.file_name,
-                    load_address = d.load_address,
-                    execution_address = d.execution_address,
-                    length = d.length,
-                    start_sector = entry.start_sector
-                )
-            } else {
-                println!(
-                    "  {directory}.{file_name:<10} {load_address} {execution_address} {length} {start_sector}",
-                    directory = d.directory,
-                    file_name = d.file_name,
-                    load_address = d.load_address,
-                    execution_address = d.execution_address,
-                    length = d.length,
-                    start_sector = entry.start_sector
-                )
-            }
+
+            let extra = String::from(if d.locked { " (locked)" } else { "" });
+            println!(
+                "  {directory}.{file_name:<10} {load_address} {execution_address} {length} {start_sector}{extra}",
+                directory = d.directory,
+                file_name = d.file_name.to_string(),
+                load_address = d.load_address,
+                execution_address = d.execution_address,
+                length = d.length,
+                start_sector = entry.start_sector,
+                extra = extra
+            )
         }
     }
 
