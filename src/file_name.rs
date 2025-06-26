@@ -1,10 +1,11 @@
 use crate::util::is_file_name_char;
 use anyhow::{Error, bail};
+use serde::Serialize;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::result::Result as StdResult;
 use std::str::FromStr;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct FileName(String);
 
 impl FromStr for FileName {

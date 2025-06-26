@@ -1,6 +1,6 @@
 macro_rules! u18 {
     ($name: ident) => {
-        #[derive(Debug)]
+        #[derive(Debug, serde::Serialize)]
         pub struct $name(u32);
 
         impl $name {

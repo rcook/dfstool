@@ -1,10 +1,11 @@
 use crate::util::is_file_name_char;
 use anyhow::{Error, bail};
+use serde::Serialize;
 use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::result::Result as StdResult;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize)]
 pub struct Directory(char);
 
 impl TryFrom<char> for Directory {
