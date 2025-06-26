@@ -44,23 +44,24 @@ impl CatalogueEntry {
         let d = (temp & 0b01111111) as char;
         let directory = d.try_into()?;
 
-        let extra_bits = bytes[SECTOR_SIZE + offset + 6];
+        let offset2 = SECTOR_SIZE + offset;
 
-        let load_address = (bytes[SECTOR_SIZE + offset] as u32
-            + ((bytes[SECTOR_SIZE + offset + 1] as u32) << 8)
+        let extra_bits = bytes[offset2 + 6];
+
+        let load_address = (bytes[offset2] as u32
+            + ((bytes[offset2 + 1] as u32) << 8)
             + ((((extra_bits & 0b00001100) >> 2) as u32) << 16))
             .try_into()?;
-        let execution_address = (bytes[SECTOR_SIZE + offset + 2] as u32
-            + ((bytes[SECTOR_SIZE + offset + 3] as u32) << 8)
+        let execution_address = (bytes[offset2 + 2] as u32
+            + ((bytes[offset2 + 3] as u32) << 8)
             + ((((extra_bits & 0b11000000) >> 6) as u32) << 16))
             .try_into()?;
-        let length = (bytes[SECTOR_SIZE + offset + 4] as u32
-            + ((bytes[SECTOR_SIZE + offset + 5] as u32) << 8)
+        let length = (bytes[offset2 + 4] as u32
+            + ((bytes[offset2 + 5] as u32) << 8)
             + ((((extra_bits & 0b00110000) >> 4) as u32) << 16))
             .try_into()?;
-        let start_sector = (bytes[SECTOR_SIZE + offset + 7] as u16
-            + (((extra_bits & 0b00000011) as u16) << 8))
-            .try_into()?;
+        let start_sector =
+            (bytes[offset2 + 7] as u16 + (((extra_bits & 0b00000011) as u16) << 8)).try_into()?;
 
         Ok(Self::new(
             FileDescriptor::new(
@@ -82,6 +83,28 @@ impl CatalogueEntry {
         bytes[offset..offset + len].copy_from_slice(s.as_bytes());
         bytes[offset + 7] = (if self.descriptor.locked { 0x80 } else { 0 })
             | self.descriptor.directory.as_char() as u8;
+
+        let offset2 = offset + SECTOR_SIZE;
+
+        let load_address = self.descriptor.load_address.as_usize();
+        let execution_address = self.descriptor.execution_address.as_usize();
+        let length = self.length.as_usize();
+        let start_sector = self.start_sector.as_usize();
+
+        bytes[offset2] = (load_address & 0xff) as u8;
+        bytes[offset2 + 1] = ((load_address >> 8) & 0xff) as u8;
+        bytes[offset2 + 2] = (execution_address & 0xff) as u8;
+        bytes[offset2 + 3] = ((execution_address >> 8) & 0xff) as u8;
+        bytes[offset2 + 4] = (length & 0xff) as u8;
+        bytes[offset2 + 5] = ((length >> 8) & 0xff) as u8;
+        bytes[offset2 + 7] = (start_sector & 0xff) as u8;
+
+        let extra_bits = ((load_address >> 16)
+            << (2 + (execution_address >> 16))
+            << (6 + (length >> 16))
+            << (4 + (start_sector >> 8))) as u8;
+        bytes[offset2 + 6] = extra_bits;
+
         Ok(())
     }
 }
