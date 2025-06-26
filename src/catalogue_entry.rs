@@ -13,6 +13,14 @@ pub struct CatalogueEntry {
 }
 
 impl CatalogueEntry {
+    pub fn new(descriptor: FileDescriptor, length: Length, start_sector: StartSector) -> Self {
+        Self {
+            descriptor,
+            length,
+            start_sector,
+        }
+    }
+
     // https://beebwiki.mdfs.net/Acorn_DFS_disc_format
     pub fn from_catalogue_bytes(bytes: &CatalogueBytes, index: usize) -> Result<Self> {
         let offset = (index + 1) * 8;
@@ -42,8 +50,8 @@ impl CatalogueEntry {
             + (((extra_bits & 0b00000011) as u16) << 8))
             .try_into()?;
 
-        Ok(Self {
-            descriptor: FileDescriptor::new(
+        Ok(Self::new(
+            FileDescriptor::new(
                 file_name,
                 directory,
                 locked,
@@ -52,6 +60,6 @@ impl CatalogueEntry {
             ),
             length,
             start_sector,
-        })
+        ))
     }
 }

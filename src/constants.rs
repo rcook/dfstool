@@ -1,3 +1,5 @@
+pub const START_SECTOR: usize = 2;
+
 pub const SECTOR_SIZE: usize = 256;
 
 pub const SSD_CONTENT_FILE_EXT: &str = "ssdfile";

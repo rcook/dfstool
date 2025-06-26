@@ -1,6 +1,6 @@
 macro_rules! u10 {
     ($name: ident) => {
-        #[derive(Debug)]
+        #[derive(Clone, Copy, Debug)]
         pub struct $name(u16);
 
         impl $name {
