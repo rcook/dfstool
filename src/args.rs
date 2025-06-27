@@ -44,7 +44,7 @@ pub enum Command {
         overwrite: bool,
 
         #[arg(
-            help = "Don't detokenize BASIC program",
+            help = "Don't detokenize BASIC programs",
             short = 'n',
             default_value_t = false
         )]
