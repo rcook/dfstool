@@ -1,4 +1,4 @@
-use crate::bbc_basic::BBC_BASIC_2_EXECUTION_ADDRESS;
+use crate::bbc_basic::{BBC_BASIC_2_EXECUTION_ADDRESS, END_MARKER};
 use crate::file_descriptor::FileDescriptor;
 use anyhow::{Result, bail};
 use std::fs::File;
@@ -20,7 +20,7 @@ pub fn is_bbc_basic_file(content_path: &Path, descriptor: &FileDescriptor) -> Re
     // https://www.bbcbasic.net/wiki/doku.php?id=format
     let mut bytes = [0; 2];
     f.read_exact(&mut bytes)?;
-    if bytes[0] != 0x0d || bytes[1] != 0xff {
+    if bytes != END_MARKER {
         return Ok(false);
     }
 

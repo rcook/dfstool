@@ -14,11 +14,6 @@ pub fn run() -> Result<()> {
             output_path,
             overwrite,
         } => do_detokenize(&input_path, &output_path, overwrite)?,
-        Command::Tokenize {
-            input_path,
-            output_path,
-            overwrite,
-        } => do_tokenize(&input_path, &output_path, overwrite)?,
         Command::Extract {
             input_path,
             output_dir,
@@ -31,6 +26,11 @@ pub fn run() -> Result<()> {
             overwrite,
         } => do_make(&input_dir, &output_path, overwrite)?,
         Command::Show { ssd_path } => do_show(&ssd_path)?,
+        Command::Tokenize {
+            input_path,
+            output_path,
+            overwrite,
+        } => do_tokenize(&input_path, &output_path, overwrite)?,
     }
     Ok(())
 }

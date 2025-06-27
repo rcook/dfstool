@@ -1,0 +1,11 @@
+   10MODE 7
+   20DIM code% 256
+   30FOR opt% = 0 TO 2 STEP 2
+   40P% = code%
+   50[OPT opt%
+   60 LDA #65
+   70 JSR &FFEE
+   80 RTS
+   90]
+  100NEXT
+  110CALL code%

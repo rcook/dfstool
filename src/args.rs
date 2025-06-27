@@ -22,18 +22,6 @@ pub enum Command {
         overwrite: bool,
     },
 
-    #[command(name = "tokenize", about = "Tokenize BBC BASIC program")]
-    Tokenize {
-        #[arg(required = true, value_parser = parse_absolute_path)]
-        input_path: PathBuf,
-
-        #[arg(long = "output", short = 'o', value_parser = parse_absolute_path)]
-        output_path: Option<PathBuf>,
-
-        #[arg(long = "overwrite", short = 'f', default_value_t = false)]
-        overwrite: bool,
-    },
-
     #[command(name = "extract", about = "Extract files and metadata from .ssd file")]
     Extract {
         #[arg(required = true, value_parser = parse_absolute_path)]
@@ -65,6 +53,18 @@ pub enum Command {
     Show {
         #[arg(required = true, value_parser = parse_absolute_path)]
         ssd_path: PathBuf,
+    },
+
+    #[command(name = "tokenize", about = "Tokenize BBC BASIC program")]
+    Tokenize {
+        #[arg(required = true, value_parser = parse_absolute_path)]
+        input_path: PathBuf,
+
+        #[arg(required = true, value_parser = parse_absolute_path)]
+        output_path: PathBuf,
+
+        #[arg(long = "overwrite", short = 'f', default_value_t = false)]
+        overwrite: bool,
     },
 }
 
