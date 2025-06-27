@@ -1,4 +1,4 @@
-use crate::bbc_basic::{KEYWORD_TOKEN_OFFSET, KEYWORDS};
+use crate::bbc_basic::KEYWORDS_BY_TOKEN;
 use anyhow::{Result, bail};
 use std::io::Write;
 
@@ -59,7 +59,9 @@ fn detokenize_line<W: Write>(mut writer: W, line_number: u16, bytes: &[u8]) -> R
                 write!(writer, "{line_number}")?;
             }
             value if (value & 0x80) != 0 => {
-                let keyword = KEYWORDS[*value as usize - KEYWORD_TOKEN_OFFSET];
+                let Some(keyword) = KEYWORDS_BY_TOKEN.get(value) else {
+                    bail!("unknown token 0x{value:02x}")
+                };
                 write!(writer, "{keyword}")?
             }
             value => {

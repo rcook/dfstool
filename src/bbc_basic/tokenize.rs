@@ -1,4 +1,4 @@
-use crate::bbc_basic::{END_MARKER, KEYWORD_MAP};
+use crate::bbc_basic::{END_MARKER, KEYWORDS_BY_NAME};
 use anyhow::{Result, anyhow, bail};
 use std::io::Write;
 
@@ -103,5 +103,5 @@ fn tokenize_content(content: &str) -> Result<Vec<u8>> {
 }
 
 fn find_keyword_token(word: &str) -> Option<u8> {
-    KEYWORD_MAP.get(word).copied()
+    KEYWORDS_BY_NAME.get(word).copied()
 }
