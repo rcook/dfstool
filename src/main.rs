@@ -21,6 +21,7 @@ mod make_command;
 mod run;
 mod show_command;
 mod start_sector;
+mod tokenize_command;
 mod u10;
 mod u18;
 mod util;

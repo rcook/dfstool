@@ -3,6 +3,7 @@ use crate::detokenize_command::do_detokenize;
 use crate::extract_command::do_extract;
 use crate::make_command::do_make;
 use crate::show_command::do_show;
+use crate::tokenize_command::do_tokenize;
 use anyhow::Result;
 use clap::Parser;
 
@@ -13,6 +14,11 @@ pub fn run() -> Result<()> {
             output_path,
             overwrite,
         } => do_detokenize(&input_path, &output_path, overwrite)?,
+        Command::Tokenize {
+            input_path,
+            output_path,
+            overwrite,
+        } => do_tokenize(&input_path, &output_path, overwrite)?,
         Command::Extract {
             input_path,
             output_dir,
