@@ -1,5 +1,5 @@
 [package]
-name = "dfs-read"
+name = "dfstool"
 version = "0.1.0"
 edition = "2024"
 
