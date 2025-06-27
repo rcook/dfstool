@@ -1,6 +1,6 @@
 use crate::catalogue::Catalogue;
 use crate::constants::{SSD_CONTENT_FILE_EXT, SSD_METADATA_FILE_EXT};
-use crate::detokenize::do_detokenize;
+use crate::detokenize_command::do_detokenize;
 use crate::util::open_for_write;
 use anyhow::Result;
 use path_absolutize::Absolutize;

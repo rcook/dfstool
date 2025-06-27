@@ -1,8 +1,8 @@
 use crate::args::{Args, Command};
-use crate::detokenize::do_detokenize;
-use crate::extract::do_extract;
-use crate::make::do_make;
-use crate::show::do_show;
+use crate::detokenize_command::do_detokenize;
+use crate::extract_command::do_extract;
+use crate::make_command::do_make;
+use crate::show_command::do_show;
 use anyhow::Result;
 use clap::Parser;
 
