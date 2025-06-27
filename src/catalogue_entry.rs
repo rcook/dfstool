@@ -1,8 +1,8 @@
 use crate::catalogue_bytes::CatalogueBytes;
 use crate::constants::SECTOR_SIZE;
 use crate::file_descriptor::FileDescriptor;
-use crate::u10::StartSector;
-use crate::u18::Length;
+use crate::length::Length;
+use crate::start_sector::StartSector;
 use anyhow::Result;
 
 #[derive(Debug)]

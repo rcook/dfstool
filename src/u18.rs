@@ -1,6 +1,7 @@
+#[macro_export]
 macro_rules! u18 {
     ($name: ident) => {
-        #[derive(Clone, Copy, Debug, serde::Serialize)]
+        #[derive(Clone, Copy, Debug, PartialEq, serde::Serialize)]
         pub struct $name(u32);
 
         impl $name {
@@ -54,6 +55,3 @@ macro_rules! u18 {
         }
     };
 }
-
-u18!(Address);
-u18!(Length);
