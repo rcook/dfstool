@@ -14,13 +14,15 @@ pub fn run() -> Result<()> {
             overwrite,
         } => do_detokenize(&input_path, &output_path, overwrite)?,
         Command::Extract {
-            ssd_path,
+            input_path,
+            output_dir,
             overwrite,
-        } => do_extract(&ssd_path, overwrite)?,
+        } => do_extract(&input_path, &output_dir, overwrite)?,
         Command::Make {
-            ssd_path,
+            input_dir,
+            output_path,
             overwrite,
-        } => do_make(&ssd_path, overwrite)?,
+        } => do_make(&input_dir, &output_path, overwrite)?,
         Command::Show { ssd_path } => do_show(&ssd_path)?,
     }
     Ok(())

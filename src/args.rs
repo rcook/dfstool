@@ -22,19 +22,25 @@ pub enum Command {
         overwrite: bool,
     },
 
-    #[command(name = "extract", about = "Extract files and metadata")]
+    #[command(name = "extract", about = "Extract files and metadata from .ssd file")]
     Extract {
         #[arg(required = true, value_parser = parse_absolute_path)]
-        ssd_path: PathBuf,
+        input_path: PathBuf,
+
+        #[arg(required = true, value_parser = parse_absolute_path)]
+        output_dir: PathBuf,
 
         #[arg(long = "overwrite", short = 'f', default_value_t = false)]
         overwrite: bool,
     },
 
-    #[command(name = "make", about = "Make image from files and metadata")]
+    #[command(name = "make", about = "Make .ssd file from files and metadata")]
     Make {
         #[arg(required = true, value_parser = parse_absolute_path)]
-        ssd_path: PathBuf,
+        input_dir: PathBuf,
+
+        #[arg(required = true, value_parser = parse_absolute_path)]
+        output_path: PathBuf,
 
         #[arg(long = "overwrite", short = 'f', default_value_t = false)]
         overwrite: bool,

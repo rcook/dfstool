@@ -10,13 +10,12 @@ use crate::u18::Length;
 use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
 use std::cmp::Ordering;
-use std::env::current_dir;
 use std::ffi::OsStr;
-use std::fs::{File, metadata, read_dir};
+use std::fs::{File, create_dir_all, metadata, read_dir};
 use std::io::{ErrorKind, Read, Write};
 use std::path::{Path, PathBuf};
 
-pub fn do_make(ssd_path: &Path, overwrite: bool) -> Result<()> {
+pub fn do_make(input_dir: &Path, output_path: &Path, overwrite: bool) -> Result<()> {
     struct Input {
         content_path: PathBuf,
         metadata_path: PathBuf,
@@ -27,7 +26,6 @@ pub fn do_make(ssd_path: &Path, overwrite: bool) -> Result<()> {
         content_path: PathBuf,
     }
 
-    let input_dir = current_dir()?;
     let d = match read_dir(&input_dir) {
         Ok(d) => d,
         Err(e) if e.kind() == ErrorKind::NotFound => {
@@ -131,8 +129,13 @@ pub fn do_make(ssd_path: &Path, overwrite: bool) -> Result<()> {
 
     catalogue.write_to(&mut bytes)?;
 
-    let mut f = open_for_write(ssd_path, overwrite)?;
-    f.write_all(&bytes)?;
+    let output_dir = output_path
+        .parent()
+        .ok_or_else(|| anyhow!("cannot get parent"))?;
+    create_dir_all(output_dir)?;
+
+    let mut output_file = open_for_write(output_path, overwrite)?;
+    output_file.write_all(&bytes)?;
 
     Ok(())
 }
