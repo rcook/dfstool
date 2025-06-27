@@ -12,58 +12,82 @@ pub struct Args {
 pub enum Command {
     #[command(name = "detokenize", about = "Detokenize BBC BASIC program")]
     Detokenize {
-        #[arg(required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Input file", required = true, value_parser = parse_absolute_path)]
         input_path: PathBuf,
 
-        #[arg(long = "output", short = 'o', value_parser = parse_absolute_path)]
+        #[arg(help = "Output file", long = "output", short = 'o', value_parser = parse_absolute_path)]
         output_path: Option<PathBuf>,
 
-        #[arg(long = "overwrite", short = 'f', default_value_t = false)]
+        #[arg(
+            help = "Overwrite output file if it exists",
+            long = "overwrite",
+            short = 'f',
+            default_value_t = false
+        )]
         overwrite: bool,
     },
 
     #[command(name = "extract", about = "Extract files and metadata from .ssd file")]
     Extract {
-        #[arg(required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Input file", required = true, value_parser = parse_absolute_path)]
         input_path: PathBuf,
 
-        #[arg(required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Output directory", required = true, value_parser = parse_absolute_path)]
         output_dir: PathBuf,
 
-        #[arg(long = "overwrite", short = 'f', default_value_t = false)]
+        #[arg(
+            help = "Overwrite output files if they exist",
+            long = "overwrite",
+            short = 'f',
+            default_value_t = false
+        )]
         overwrite: bool,
 
-        #[arg(short = 'n', default_value_t = false)]
+        #[arg(
+            help = "Don't detokenize BASIC program",
+            short = 'n',
+            default_value_t = false
+        )]
         no_detokenize: bool,
     },
 
     #[command(name = "make", about = "Make .ssd file from files and metadata")]
     Make {
-        #[arg(required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Manifest path", required = true, value_parser = parse_absolute_path)]
         manifest_path: PathBuf,
 
-        #[arg(required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Output path", required = true, value_parser = parse_absolute_path)]
         output_path: PathBuf,
 
-        #[arg(long = "overwrite", short = 'f', default_value_t = false)]
+        #[arg(
+            help = "Overwrite output file if it exists",
+            long = "overwrite",
+            short = 'f',
+            default_value_t = false
+        )]
         overwrite: bool,
     },
 
     #[command(name = "show", about = "Show catalogue")]
     Show {
-        #[arg(required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Path to .ssd file", required = true, value_parser = parse_absolute_path)]
         ssd_path: PathBuf,
     },
 
     #[command(name = "tokenize", about = "Tokenize BBC BASIC program")]
     Tokenize {
-        #[arg(required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Input path", required = true, value_parser = parse_absolute_path)]
         input_path: PathBuf,
 
-        #[arg(required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Output path", required = true, value_parser = parse_absolute_path)]
         output_path: PathBuf,
 
-        #[arg(long = "overwrite", short = 'f', default_value_t = false)]
+        #[arg(
+            help = "Overwrite output file if it exists",
+            long = "overwrite",
+            short = 'f',
+            default_value_t = false
+        )]
         overwrite: bool,
     },
 }
