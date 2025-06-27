@@ -1,4 +1,4 @@
-use crate::detokenize::detokenize_source;
+use crate::bbc_basic::detokenize_source;
 use crate::util::open_for_write;
 use anyhow::{Result, bail};
 use std::fs::{File, remove_file};

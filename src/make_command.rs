@@ -26,7 +26,7 @@ pub fn do_make(input_dir: &Path, output_path: &Path, overwrite: bool) -> Result<
         content_path: PathBuf,
     }
 
-    let d = match read_dir(&input_dir) {
+    let d = match read_dir(input_dir) {
         Ok(d) => d,
         Err(e) if e.kind() == ErrorKind::NotFound => {
             bail!("directory {dir} not found", dir = input_dir.display())

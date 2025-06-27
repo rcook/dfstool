@@ -1,8 +1,6 @@
+use crate::bbc_basic::{detokenize_source, is_bbc_basic_file};
 use crate::catalogue::Catalogue;
-use crate::constants::{
-    BBC_BASIC_2_EXECUTION_ADDRESS, SSD_CONTENT_FILE_EXT, SSD_METADATA_FILE_EXT,
-};
-use crate::detokenize::detokenize_source;
+use crate::constants::{SSD_CONTENT_FILE_EXT, SSD_METADATA_FILE_EXT};
 use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
 use std::fs::{File, create_dir_all, remove_file};
@@ -47,8 +45,7 @@ pub fn do_extract(
         let output_file = open_for_write(&metadata_path, overwrite)?;
         serde_json::to_writer_pretty(output_file, d)?;
 
-        let basic_execution_address = BBC_BASIC_2_EXECUTION_ADDRESS.try_into()?;
-        if d.execution_address == basic_execution_address && detokenize {
+        if detokenize && is_bbc_basic_file(&content_path, d)? {
             // Attempt to detokenize the file just in case it contains BASIC
             // Don't fail if it can't be detokenized
             _ = detokenize_file(&content_path, overwrite)

@@ -1,12 +1,12 @@
 mod address;
 mod args;
+mod bbc_basic;
 mod boot_option;
 mod catalogue;
 mod catalogue_bytes;
 mod catalogue_entry;
 mod constants;
 mod cycle_number;
-mod detokenize;
 mod detokenize_command;
 mod directory;
 mod disc_size;
