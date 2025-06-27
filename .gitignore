@@ -1,4 +1,6 @@
 /target
+*.bas
+*.bbc
 *.ssd
 *.ssdfile
 *.ssdfile.bas
