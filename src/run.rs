@@ -8,7 +8,11 @@ use clap::Parser;
 
 pub fn run() -> Result<()> {
     match Args::parse().command {
-        Command::Detokenize { path, overwrite } => do_detokenize(&path, overwrite)?,
+        Command::Detokenize {
+            input_path,
+            output_path,
+            overwrite,
+        } => do_detokenize(&input_path, &output_path, overwrite)?,
         Command::Extract {
             ssd_path,
             overwrite,

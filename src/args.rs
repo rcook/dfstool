@@ -13,7 +13,10 @@ pub enum Command {
     #[command(name = "detokenize", about = "Detokenize BBC BASIC program")]
     Detokenize {
         #[arg(required = true, value_parser = parse_absolute_path)]
-        path: PathBuf,
+        input_path: PathBuf,
+
+        #[arg(required = true, value_parser = parse_absolute_path)]
+        output_path: PathBuf,
 
         #[arg(long = "overwrite", short = 'f', default_value_t = false)]
         overwrite: bool,

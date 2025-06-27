@@ -1,10 +1,10 @@
 use crate::catalogue::Catalogue;
 use crate::constants::{SSD_CONTENT_FILE_EXT, SSD_METADATA_FILE_EXT};
-use crate::detokenize_command::do_detokenize;
+use crate::detokenize::detokenize_source;
 use crate::util::open_for_write;
-use anyhow::Result;
+use anyhow::{Result, anyhow, bail};
 use path_absolutize::Absolutize;
-use std::fs::File;
+use std::fs::{File, remove_file};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 
@@ -47,8 +47,30 @@ pub fn do_extract(ssd_path: &Path, overwrite: bool) -> Result<()> {
 
         // Attempt to detokenize the file just in case it contains BASIC
         // Don't fail if it can't be detokenized
-        _ = do_detokenize(&content_path, overwrite)
+        _ = detokenize_file(&content_path, overwrite)
     }
 
     Ok(())
+}
+
+fn detokenize_file(input_path: &Path, overwrite: bool) -> Result<()> {
+    let dir = input_path
+        .parent()
+        .ok_or_else(|| anyhow!("cannot get parent"))?;
+    let file_name = input_path
+        .file_name()
+        .ok_or_else(|| anyhow!("cannot get file name"))?;
+
+    let output_path = dir.join(format!("{f}.bas", f = file_name.display()));
+    let output_file = open_for_write(&output_path, overwrite)?;
+    let mut f = File::open(input_path)?;
+    let mut bytes = Vec::new();
+    f.read_to_end(&mut bytes)?;
+    match detokenize_source(output_file, &bytes) {
+        Ok(()) => Ok(()),
+        Err(e) => {
+            remove_file(&output_path)?;
+            bail!(e)
+        }
+    }
 }
