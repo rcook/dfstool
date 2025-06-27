@@ -1,9 +1,11 @@
+use std::path::PathBuf;
+
 use crate::address::Address;
 use crate::directory::Directory;
 use crate::file_name::FileName;
-use serde::{Deserialize, Serialize};
+use crate::manifest_file::ManifestFile;
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug)]
 pub struct FileDescriptor {
     pub file_name: FileName,
     pub directory: Directory,
@@ -26,6 +28,29 @@ impl FileDescriptor {
             locked,
             load_address,
             execution_address,
+        }
+    }
+
+    pub fn to_manifest_file(&self) -> ManifestFile {
+        ManifestFile {
+            file_name: self.file_name.clone(),
+            directory: self.directory,
+            locked: self.locked,
+            load_address: self.load_address,
+            execution_address: self.execution_address,
+            content_path: self.content_path(),
+        }
+    }
+
+    fn content_path(&self) -> PathBuf {
+        if self.directory.is_root() {
+            PathBuf::from(self.file_name.to_string())
+        } else {
+            PathBuf::from(format!(
+                "{directory}.{file_name}",
+                directory = self.directory,
+                file_name = self.file_name
+            ))
         }
     }
 }

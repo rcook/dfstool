@@ -40,7 +40,7 @@ pub enum Command {
     #[command(name = "make", about = "Make .ssd file from files and metadata")]
     Make {
         #[arg(required = true, value_parser = parse_absolute_path)]
-        input_dir: PathBuf,
+        manifest_path: PathBuf,
 
         #[arg(required = true, value_parser = parse_absolute_path)]
         output_path: PathBuf,

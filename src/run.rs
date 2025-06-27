@@ -21,10 +21,10 @@ pub fn run() -> Result<()> {
             no_detokenize,
         } => do_extract(&input_path, &output_dir, overwrite, !no_detokenize)?,
         Command::Make {
-            input_dir,
+            manifest_path,
             output_path,
             overwrite,
-        } => do_make(&input_dir, &output_path, overwrite)?,
+        } => do_make(&manifest_path, &output_path, overwrite)?,
         Command::Show { ssd_path } => do_show(&ssd_path)?,
         Command::Tokenize {
             input_path,

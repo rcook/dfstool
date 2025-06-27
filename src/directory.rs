@@ -11,6 +11,10 @@ use std::result::Result as StdResult;
 pub struct Directory(char);
 
 impl Directory {
+    pub fn is_root(&self) -> bool {
+        self.0 == '$'
+    }
+
     pub fn as_char(&self) -> char {
         self.0
     }

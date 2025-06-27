@@ -1,8 +1,9 @@
 use crate::bbc_basic::{detokenize_source, is_bbc_basic_file};
 use crate::catalogue::Catalogue;
-use crate::constants::{SSD_CONTENT_FILE_EXT, SSD_METADATA_FILE_EXT};
+use crate::manifest::Manifest;
 use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
+use std::ffi::OsStr;
 use std::fs::{File, create_dir_all, remove_file};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
@@ -20,6 +21,19 @@ pub fn do_extract(
         create_dir_all(output_dir)?;
     }
 
+    let mut manifest_file_name = String::new();
+    manifest_file_name.push_str(input_path.file_name().and_then(OsStr::to_str).ok_or_else(
+        || {
+            anyhow!(
+                "could not get file name from {input_path}",
+                input_path = input_path.display()
+            )
+        },
+    )?);
+    manifest_file_name.push_str(".json");
+    let manifest_path = output_dir.join(manifest_file_name);
+
+    let mut manifest_files = Vec::with_capacity(catalogue.entries.len());
     for entry in &catalogue.entries {
         let d = &entry.descriptor;
 
@@ -27,30 +41,27 @@ pub fn do_extract(
         input_file.seek(SeekFrom::Start(entry.start_sector.as_u64() * 256))?;
         input_file.read_exact(&mut bytes)?;
 
-        let content_path = output_dir.join(format!(
-            "{}_{}.{ext}",
-            d.directory,
-            d.file_name,
-            ext = SSD_CONTENT_FILE_EXT
-        ));
-        let mut output_file = open_for_write(&content_path, overwrite)?;
-        output_file.write_all(&bytes)?;
-
-        let metadata_path = output_dir.join(format!(
-            "{}_{}.{ext}",
-            d.directory,
-            d.file_name,
-            ext = SSD_METADATA_FILE_EXT
-        ));
-        let output_file = open_for_write(&metadata_path, overwrite)?;
-        serde_json::to_writer_pretty(output_file, d)?;
+        let manifest_file = d.to_manifest_file();
+        let content_path = output_dir.join(&manifest_file.content_path);
+        let mut content_file = open_for_write(&content_path, overwrite)?;
+        content_file.write_all(&bytes)?;
 
         if detokenize && is_bbc_basic_file(&content_path, d)? {
             // Attempt to detokenize the file just in case it contains BASIC
             // Don't fail if it can't be detokenized
             _ = detokenize_file(&content_path, overwrite)
         }
+
+        manifest_files.push(manifest_file);
     }
+
+    let manifest_file = open_for_write(&manifest_path, overwrite)?;
+    serde_json::to_writer_pretty(
+        manifest_file,
+        &Manifest {
+            files: manifest_files,
+        },
+    )?;
 
     Ok(())
 }

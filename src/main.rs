@@ -18,6 +18,8 @@ mod file_name;
 mod file_offset;
 mod length;
 mod make_command;
+mod manifest;
+mod manifest_file;
 mod run;
 mod show_command;
 mod start_sector;
