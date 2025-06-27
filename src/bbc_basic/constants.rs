@@ -1,9 +1,5 @@
-use crate::address::Address;
 use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
-
-pub static BBC_BASIC_2_EXECUTION_ADDRESS: LazyLock<Address> =
-    LazyLock::new(|| 0x38023.try_into().expect("Must be valid"));
 
 pub const END_MARKER: [u8; 2] = [0x0d, 0xff];
 

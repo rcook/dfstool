@@ -1,15 +1,10 @@
-use crate::bbc_basic::{BBC_BASIC_2_EXECUTION_ADDRESS, END_MARKER};
-use crate::file_descriptor::FileDescriptor;
+use crate::bbc_basic::END_MARKER;
 use anyhow::{Result, bail};
 use std::fs::File;
 use std::io::{ErrorKind, Read, Seek, SeekFrom};
 use std::path::Path;
 
-pub fn is_bbc_basic_file(content_path: &Path, descriptor: &FileDescriptor) -> Result<bool> {
-    if descriptor.execution_address != *BBC_BASIC_2_EXECUTION_ADDRESS {
-        return Ok(false);
-    }
-
+pub fn is_bbc_basic_file(content_path: &Path) -> Result<bool> {
     let mut f = File::open(content_path)?;
     match f.seek(SeekFrom::End(-2)) {
         Ok(_) => {}

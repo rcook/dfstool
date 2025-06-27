@@ -48,7 +48,7 @@ pub fn do_extract(
             let mut content_file = open_for_write(&content_path, overwrite)?;
             content_file.write_all(&bytes)?;
 
-            let file_type = if is_bbc_basic_file(&content_path, d)? {
+            let file_type = if is_bbc_basic_file(&content_path)? {
                 FileType::TokenizedBasic
             } else {
                 FileType::Unknown
