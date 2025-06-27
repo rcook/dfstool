@@ -1,4 +1,4 @@
-use crate::bbc_basic::{END_MARKER, KEYWORDS_BY_NAME};
+use crate::bbc_basic::{END_MARKER, KEYWORDS_BY_NAME, LINE_NUMBER_TOKENS};
 use anyhow::{Result, anyhow, bail};
 use std::io::Write;
 
@@ -49,6 +49,7 @@ fn tokenize_line<W: Write>(mut writer: W, line: &str) -> Result<()> {
 fn tokenize_content(content: &str) -> Result<Vec<u8>> {
     let mut chars = content.chars().peekable();
 
+    let mut previous_token = None;
     let mut output = Vec::new();
     while let Some(ch) = chars.next() {
         match ch {
@@ -62,23 +63,46 @@ fn tokenize_content(content: &str) -> Result<Vec<u8>> {
                     }
                 }
             }
-            '0'..='9' => {
-                // TBD: Properly tokenize line numbers!
-                output.push(ch as u8);
-                while let Some(&next_ch) = chars.peek() {
-                    if next_ch.is_ascii_digit() || next_ch == '.' {
+            '0'..='9' => match previous_token {
+                Some(token) if LINE_NUMBER_TOKENS.contains(&token) => {
+                    let mut s = String::new();
+                    s.push(ch);
+                    while let Some(&c) = chars.peek() {
+                        if !c.is_ascii_digit() {
+                            break;
+                        }
+                        s.push(chars.next().unwrap());
+                    }
+
+                    previous_token = None;
+
+                    let line_number = s.parse::<u16>()?;
+
+                    // https://xania.org/200711/bbc-basic-line-number-format
+                    let hi = (line_number >> 8) as u8;
+                    let lo = (line_number & 0xff) as u8;
+                    let first_byte = ((lo & 0b11000000) >> 2) + ((hi & 0b11000000) >> 4);
+                    output.push(0x8d);
+                    output.push(first_byte ^ 0x54);
+                    output.push((lo & 0x3f) | 0x40);
+                    output.push((hi & 0x3f) | 0x40);
+                }
+                _ => {
+                    output.push(ch as u8);
+                    while let Some(&c) = chars.peek() {
+                        if !c.is_ascii_digit() && c != '.' {
+                            break;
+                        }
                         output.push(chars.next().unwrap() as u8);
-                    } else {
-                        break;
                     }
                 }
-            }
+            },
             'A'..='Z' | 'a'..='z' => {
                 let mut word = String::new();
                 word.push(ch);
 
                 while let Some(&next_ch) = chars.peek() {
-                    if next_ch.is_alphanumeric() || next_ch == '$' || next_ch == '(' {
+                    if next_ch.is_ascii_alphabetic() || next_ch == '$' || next_ch == '(' {
                         word.push(chars.next().expect("already peeked"));
                     } else {
                         break;
@@ -87,10 +111,12 @@ fn tokenize_content(content: &str) -> Result<Vec<u8>> {
 
                 if let Some(token) = find_keyword_token(&word) {
                     output.push(token);
+                    previous_token = Some(token)
                 } else {
                     for c in word.chars() {
                         output.push(c as u8);
                     }
+                    previous_token = None
                 }
             }
             _ => {
@@ -104,4 +130,81 @@ fn tokenize_content(content: &str) -> Result<Vec<u8>> {
 
 fn find_keyword_token(word: &str) -> Option<u8> {
     KEYWORDS_BY_NAME.get(word).copied()
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::bbc_basic::tokenize_source;
+    use anyhow::Result;
+    use rstest::rstest;
+    use std::io::Cursor;
+
+    const PROG1: [u8; 128] = [
+        0x0d, 0x00, 0x0a, 0x07, 0xeb, 0x20, 0x37, 0x0d, 0x00, 0x14, 0x0f, 0xde, 0x20, 0x63, 0x6f,
+        0x64, 0x65, 0x25, 0x20, 0x32, 0x35, 0x36, 0x0d, 0x00, 0x1e, 0x16, 0xe3, 0x20, 0x6f, 0x70,
+        0x74, 0x25, 0x20, 0x3d, 0x20, 0x30, 0x20, 0xb8, 0x20, 0x32, 0x20, 0x88, 0x20, 0x32, 0x0d,
+        0x00, 0x28, 0x0e, 0x50, 0x25, 0x20, 0x3d, 0x20, 0x63, 0x6f, 0x64, 0x65, 0x25, 0x0d, 0x00,
+        0x32, 0x0d, 0x5b, 0x4f, 0x50, 0x54, 0x20, 0x6f, 0x70, 0x74, 0x25, 0x0d, 0x00, 0x3c, 0x0c,
+        0x20, 0x4c, 0x44, 0x41, 0x20, 0x23, 0x36, 0x35, 0x0d, 0x00, 0x46, 0x0e, 0x20, 0x4a, 0x53,
+        0x52, 0x20, 0x26, 0x46, 0x46, 0x45, 0x45, 0x0d, 0x00, 0x50, 0x08, 0x20, 0x52, 0x54, 0x53,
+        0x0d, 0x00, 0x5a, 0x05, 0x5d, 0x0d, 0x00, 0x64, 0x05, 0xed, 0x0d, 0x00, 0x6e, 0x0b, 0xd6,
+        0x20, 0x63, 0x6f, 0x64, 0x65, 0x25, 0x0d, 0xff,
+    ];
+
+    const PROG1_STR: &str = r#"   10MODE 7
+   20DIM code% 256
+   30FOR opt% = 0 TO 2 STEP 2
+   40P% = code%
+   50[OPT opt%
+   60 LDA #65
+   70 JSR &FFEE
+   80 RTS
+   90]
+  100NEXT
+  110CALL code%
+"#;
+
+    const PROG2: [u8; 202] = [
+        0x0d, 0x00, 0x0a, 0x07, 0xeb, 0x20, 0x37, 0x0d, 0x00, 0x14, 0x11, 0xf1, 0x20, 0x8a, 0x35,
+        0x29, 0x20, 0x22, 0x48, 0x45, 0x4c, 0x4c, 0x4f, 0x22, 0x0d, 0x00, 0x1e, 0x0a, 0xe4, 0x20,
+        0x8d, 0x74, 0x4c, 0x40, 0x0d, 0x00, 0x28, 0x0a, 0xe5, 0x20, 0x8d, 0x54, 0x7c, 0x40, 0x0d,
+        0x00, 0x32, 0x11, 0xf1, 0x20, 0x22, 0x53, 0x4b, 0x49, 0x50, 0x20, 0x54, 0x48, 0x49, 0x53,
+        0x22, 0x0d, 0x00, 0x3c, 0x10, 0xe3, 0x20, 0x61, 0x25, 0x20, 0x3d, 0x20, 0x30, 0x20, 0xb8,
+        0x20, 0x34, 0x0d, 0x00, 0x46, 0x1a, 0xe7, 0x20, 0x61, 0x25, 0x20, 0x3d, 0x20, 0x30, 0x20,
+        0x8c, 0x20, 0x8d, 0x44, 0x50, 0x40, 0x20, 0x8b, 0x20, 0x8d, 0x44, 0x64, 0x40, 0x0d, 0x00,
+        0x50, 0x12, 0xf1, 0x20, 0x22, 0x61, 0x25, 0x20, 0x69, 0x73, 0x20, 0x7a, 0x65, 0x72, 0x6f,
+        0x22, 0x0d, 0x00, 0x5a, 0x0a, 0xe5, 0x20, 0x8d, 0x44, 0x6e, 0x40, 0x0d, 0x00, 0x64, 0x15,
+        0xf1, 0x20, 0x22, 0x61, 0x25, 0x20, 0x69, 0x73, 0x20, 0x6e, 0x6f, 0x6e, 0x7a, 0x65, 0x72,
+        0x6f, 0x22, 0x0d, 0x00, 0x6e, 0x0d, 0xf1, 0x20, 0x22, 0x45, 0x4e, 0x44, 0x49, 0x46, 0x22,
+        0x0d, 0x00, 0x78, 0x05, 0xed, 0x0d, 0x00, 0x82, 0x05, 0xe0, 0x0d, 0x00, 0x8c, 0x14, 0xf1,
+        0x20, 0x22, 0x41, 0x20, 0x53, 0x55, 0x42, 0x52, 0x4f, 0x55, 0x54, 0x49, 0x4e, 0x45, 0x22,
+        0x0d, 0x00, 0x96, 0x05, 0xf8, 0x0d, 0xff,
+    ];
+
+    const PROG2_STR: &str = r#"   10MODE 7
+   20PRINT TAB(5) "HELLO"
+   30GOSUB 140
+   40GOTO 60
+   50PRINT "SKIP THIS"
+   60FOR a% = 0 TO 4
+   70IF a% = 0 THEN 80 ELSE 100
+   80PRINT "a% is zero"
+   90GOTO 110
+  100PRINT "a% is nonzero"
+  110PRINT "ENDIF"
+  120NEXT
+  130END
+  140PRINT "A SUBROUTINE"
+  150RETURN
+"#;
+
+    #[rstest]
+    #[case(&PROG1, PROG1_STR )]
+    #[case(&PROG2, PROG2_STR, )]
+    fn basics(#[case] expected_output: &[u8], #[case] input: &str) -> Result<()> {
+        let mut bytes = Vec::new();
+        tokenize_source(Cursor::new(&mut bytes), input)?;
+        assert_eq!(expected_output, bytes);
+        Ok(())
+    }
 }

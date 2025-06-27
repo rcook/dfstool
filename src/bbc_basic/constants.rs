@@ -1,5 +1,5 @@
 use crate::address::Address;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
 
 pub static BBC_BASIC_2_EXECUTION_ADDRESS: LazyLock<Address> =
@@ -7,7 +7,7 @@ pub static BBC_BASIC_2_EXECUTION_ADDRESS: LazyLock<Address> =
 
 pub const END_MARKER: [u8; 2] = [0x0d, 0xff];
 
-pub const KEYWORD_TOKENS: [(&str, u8); 129] = [
+pub const KEYWORD_TOKENS: [(&str, u8); 128] = [
     ("OTHERWISE", 0x7f),
     ("AND", 0x80),
     ("DIV", 0x81),
@@ -85,7 +85,7 @@ pub const KEYWORD_TOKENS: [(&str, u8); 129] = [
     ("WHEN", 0xc9),
     ("OF", 0xca),
     ("ENDCASE", 0xcb),
-    ("ELSE", 0xcc),
+    //("ELSE", 0xcc),
     ("ENDIF", 0xcd),
     ("ENDWHILE", 0xce),
     ("PTR", 0xcf),
@@ -146,5 +146,14 @@ pub static KEYWORDS_BY_TOKEN: LazyLock<HashMap<u8, &str>> = LazyLock::new(|| {
     KEYWORD_TOKENS
         .iter()
         .map(|(name, token)| (*token, *name))
+        .collect()
+});
+
+const LINE_NUMBER_KEYWORDS: [&str; 4] = ["ELSE", "GOTO", "GOSUB", "THEN"];
+
+pub static LINE_NUMBER_TOKENS: LazyLock<HashSet<u8>> = LazyLock::new(|| {
+    LINE_NUMBER_KEYWORDS
+        .map(|name| *KEYWORDS_BY_NAME.get(name).expect("must exist"))
+        .into_iter()
         .collect()
 });
