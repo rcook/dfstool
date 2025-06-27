@@ -7,7 +7,12 @@ use std::fs::{File, create_dir_all, remove_file};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::Path;
 
-pub fn do_extract(input_path: &Path, output_dir: &Path, overwrite: bool) -> Result<()> {
+pub fn do_extract(
+    input_path: &Path,
+    output_dir: &Path,
+    overwrite: bool,
+    detokenize: bool,
+) -> Result<()> {
     let mut input_file = File::open(input_path)?;
     let catalogue = Catalogue::from_reader(&mut input_file)?;
 
@@ -40,9 +45,11 @@ pub fn do_extract(input_path: &Path, output_dir: &Path, overwrite: bool) -> Resu
         let output_file = open_for_write(&metadata_path, overwrite)?;
         serde_json::to_writer_pretty(output_file, d)?;
 
-        // Attempt to detokenize the file just in case it contains BASIC
-        // Don't fail if it can't be detokenized
-        _ = detokenize_file(&content_path, overwrite)
+        if detokenize {
+            // Attempt to detokenize the file just in case it contains BASIC
+            // Don't fail if it can't be detokenized
+            _ = detokenize_file(&content_path, overwrite)
+        }
     }
 
     Ok(())

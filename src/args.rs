@@ -32,6 +32,9 @@ pub enum Command {
 
         #[arg(long = "overwrite", short = 'f', default_value_t = false)]
         overwrite: bool,
+
+        #[arg(short = 'n', default_value_t = false)]
+        no_detokenize: bool,
     },
 
     #[command(name = "make", about = "Make .ssd file from files and metadata")]

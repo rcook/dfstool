@@ -17,7 +17,8 @@ pub fn run() -> Result<()> {
             input_path,
             output_dir,
             overwrite,
-        } => do_extract(&input_path, &output_dir, overwrite)?,
+            no_detokenize,
+        } => do_extract(&input_path, &output_dir, overwrite, !no_detokenize)?,
         Command::Make {
             input_dir,
             output_path,
