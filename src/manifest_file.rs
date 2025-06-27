@@ -2,6 +2,7 @@ use crate::address::Address;
 use crate::directory::Directory;
 use crate::file_descriptor::FileDescriptor;
 use crate::file_name::FileName;
+use crate::file_type::FileType;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -24,6 +25,9 @@ pub struct ManifestFile {
 
     #[serde(rename = "content_path")]
     pub content_path: PathBuf,
+
+    #[serde(rename = "type")]
+    pub r#type: FileType,
 }
 
 impl ManifestFile {

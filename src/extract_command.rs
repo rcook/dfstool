@@ -1,5 +1,6 @@
 use crate::bbc_basic::{detokenize_source, is_bbc_basic_file};
 use crate::catalogue::Catalogue;
+use crate::file_type::FileType;
 use crate::manifest::Manifest;
 use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
@@ -33,27 +34,35 @@ pub fn do_extract(
     manifest_file_name.push_str(".json");
     let manifest_path = output_dir.join(manifest_file_name);
 
-    let mut manifest_files = Vec::with_capacity(catalogue.entries.len());
-    for entry in &catalogue.entries {
-        let d = &entry.descriptor;
+    let manifest_files = catalogue
+        .entries
+        .into_iter()
+        .map(|entry| {
+            let d = &entry.descriptor;
 
-        let mut bytes = vec![0; entry.length.as_usize()];
-        input_file.seek(SeekFrom::Start(entry.start_sector.as_u64() * 256))?;
-        input_file.read_exact(&mut bytes)?;
+            let mut bytes = vec![0; entry.length.as_usize()];
+            input_file.seek(SeekFrom::Start(entry.start_sector.as_u64() * 256))?;
+            input_file.read_exact(&mut bytes)?;
 
-        let manifest_file = d.to_manifest_file();
-        let content_path = output_dir.join(&manifest_file.content_path);
-        let mut content_file = open_for_write(&content_path, overwrite)?;
-        content_file.write_all(&bytes)?;
+            let content_path = output_dir.join(d.content_path());
+            let mut content_file = open_for_write(&content_path, overwrite)?;
+            content_file.write_all(&bytes)?;
 
-        if detokenize && is_bbc_basic_file(&content_path, d)? {
-            // Attempt to detokenize the file just in case it contains BASIC
-            // Don't fail if it can't be detokenized
-            _ = detokenize_file(&content_path, overwrite)
-        }
+            let file_type = if is_bbc_basic_file(&content_path, d)? {
+                FileType::TokenizedBasic
+            } else {
+                FileType::Unknown
+            };
 
-        manifest_files.push(manifest_file);
-    }
+            if detokenize && matches!(file_type, FileType::TokenizedBasic) {
+                // Attempt to detokenize the file just in case it contains BASIC
+                // Don't fail if it can't be detokenized
+                _ = detokenize_file(&content_path, overwrite)
+            }
+
+            Ok(d.to_manifest_file(file_type))
+        })
+        .collect::<Result<Vec<_>>>()?;
 
     let manifest_file = open_for_write(&manifest_path, overwrite)?;
     serde_json::to_writer_pretty(

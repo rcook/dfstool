@@ -1,9 +1,9 @@
-use std::path::PathBuf;
-
 use crate::address::Address;
 use crate::directory::Directory;
 use crate::file_name::FileName;
+use crate::file_type::FileType;
 use crate::manifest_file::ManifestFile;
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub struct FileDescriptor {
@@ -31,18 +31,7 @@ impl FileDescriptor {
         }
     }
 
-    pub fn to_manifest_file(&self) -> ManifestFile {
-        ManifestFile {
-            file_name: self.file_name.clone(),
-            directory: self.directory,
-            locked: self.locked,
-            load_address: self.load_address,
-            execution_address: self.execution_address,
-            content_path: self.content_path(),
-        }
-    }
-
-    fn content_path(&self) -> PathBuf {
+    pub fn content_path(&self) -> PathBuf {
         if self.directory.is_root() {
             PathBuf::from(self.file_name.to_string())
         } else {
@@ -51,6 +40,18 @@ impl FileDescriptor {
                 directory = self.directory,
                 file_name = self.file_name
             ))
+        }
+    }
+
+    pub fn to_manifest_file(&self, file_type: FileType) -> ManifestFile {
+        ManifestFile {
+            file_name: self.file_name.clone(),
+            directory: self.directory,
+            locked: self.locked,
+            load_address: self.load_address,
+            execution_address: self.execution_address,
+            content_path: self.content_path(),
+            r#type: file_type,
         }
     }
 }
