@@ -1,7 +1,2 @@
 /target
-*.bas
-*.bbc
-*.ssd
-*.ssdfile
-*.ssdfile.bas
-*.ssdfile.json
+/temp
