@@ -15,8 +15,8 @@ pub enum Command {
         #[arg(required = true, value_parser = parse_absolute_path)]
         input_path: PathBuf,
 
-        #[arg(required = true, value_parser = parse_absolute_path)]
-        output_path: PathBuf,
+        #[arg(long = "output", short = 'o', value_parser = parse_absolute_path)]
+        output_path: Option<PathBuf>,
 
         #[arg(long = "overwrite", short = 'f', default_value_t = false)]
         overwrite: bool,
