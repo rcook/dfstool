@@ -3,6 +3,11 @@ use anyhow::{Result, anyhow, bail};
 use std::io::Write;
 
 pub fn tokenize_source<W: Write>(mut writer: W, source: &str) -> Result<()> {
+    // BBC BASIC sources must be strictly ASCII!
+    if !source.is_ascii() {
+        bail!("invalid source {source}")
+    }
+
     for line in source.lines() {
         let line = line.trim();
         if !line.is_empty() {
