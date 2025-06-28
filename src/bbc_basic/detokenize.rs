@@ -1,4 +1,4 @@
-use crate::bbc_basic::KEYWORDS_BY_TOKEN;
+use crate::bbc_basic::{KEYWORDS_BY_TOKEN, LINE_NUMBER_TOKEN, decode_line_number};
 use anyhow::{Result, bail};
 use std::io::Write;
 
@@ -50,7 +50,7 @@ fn detokenize_line<W: Write>(mut writer: W, line_number: u16, bytes: &[u8]) -> R
     let mut iter = bytes.iter();
     while let Some(b) = iter.next() {
         match b {
-            0x8d => {
+            &LINE_NUMBER_TOKEN => {
                 // https://xania.org/200711/bbc-basic-line-number-format
                 let b0 = iter_next!(iter);
                 let b1 = iter_next!(iter);
@@ -75,18 +75,4 @@ fn detokenize_line<W: Write>(mut writer: W, line_number: u16, bytes: &[u8]) -> R
     }
     writeln!(writer)?;
     Ok(())
-}
-
-fn decode_line_number(b0: u8, b1: u8, b2: u8) -> u16 {
-    let t0 = b0 ^ 0x54;
-    let ll = (t0 & 0b00110000) >> 4;
-    let hh = (t0 & 0b00001100) >> 2;
-
-    let t1 = b1 & 0b00111111;
-    let lo = t1 + (ll << 6);
-
-    let t2 = b2 & 0b00111111;
-    let hi = t2 + (hh << 6);
-
-    ((hi as u16) << 8) + lo as u16
 }

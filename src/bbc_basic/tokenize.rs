@@ -1,4 +1,6 @@
-use crate::bbc_basic::{END_MARKER, KEYWORDS_BY_NAME, LINE_NUMBER_TOKENS};
+use crate::bbc_basic::{
+    END_MARKER, KEYWORDS_BY_NAME, LINE_NUMBER_TOKEN, LINE_NUMBER_TOKENS, encode_line_number,
+};
 use anyhow::{Result, anyhow, bail};
 use std::io::Write;
 
@@ -96,31 +98,31 @@ fn tokenize_content(content: &str) -> Result<Vec<u8>> {
             }
             '0'..='9' => match previous_token {
                 Some(token) if LINE_NUMBER_TOKENS.contains(&token) => {
-                    let s = {
-                        let mut s = String::new();
-                        s.push(ch);
+                    let line_number = {
+                        let mut acc = (byte - 48) as u16;
                         while let Some(byte) = peek!(bytes, iter) {
                             let c = byte as char;
                             if !c.is_ascii_digit() {
                                 break;
                             }
-                            s.push(next!(bytes, iter).unwrap() as char);
+
+                            next!(bytes, iter).unwrap();
+
+                            acc = acc
+                                .checked_mul(10)
+                                .and_then(|value| value.checked_add((byte - 48) as u16))
+                                .ok_or_else(|| anyhow!("invalid line number in {content}"))?;
                         }
-                        s
+                        acc
                     };
 
                     previous_token = None;
 
-                    let line_number = s.parse::<u16>()?;
-
-                    // https://xania.org/200711/bbc-basic-line-number-format
-                    let hi = (line_number >> 8) as u8;
-                    let lo = (line_number & 0xff) as u8;
-                    let first_byte = ((lo & 0b11000000) >> 2) + ((hi & 0b11000000) >> 4);
-                    output.push(0x8d);
-                    output.push(first_byte ^ 0x54);
-                    output.push((lo & 0x3f) | 0x40);
-                    output.push((hi & 0x3f) | 0x40);
+                    let (byte0, byte1, byte2) = encode_line_number(line_number);
+                    output.push(LINE_NUMBER_TOKEN);
+                    output.push(byte0);
+                    output.push(byte1);
+                    output.push(byte2);
                 }
                 _ => {
                     output.push(byte);

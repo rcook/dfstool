@@ -3,6 +3,8 @@ use std::sync::LazyLock;
 
 pub const END_MARKER: [u8; 2] = [0x0d, 0xff];
 
+pub const LINE_NUMBER_TOKEN: u8 = 0x8d;
+
 pub const KEYWORD_TOKENS: [(&str, u8); 128] = [
     ("OTHERWISE", 0x7f),
     ("AND", 0x80),
@@ -18,7 +20,7 @@ pub const KEYWORD_TOKENS: [(&str, u8); 128] = [
     ("TAB(", 0x8a),
     ("ELSE", 0x8b),
     ("THEN", 0x8c),
-    ("<line>", 0x8d),
+    ("<line>", LINE_NUMBER_TOKEN),
     ("OPENIN", 0x8e),
     ("PTR", 0x8f),
     ("PAGE", 0x90),
