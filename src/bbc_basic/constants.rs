@@ -5,6 +5,8 @@ pub const END_MARKER: [u8; 2] = [0x0d, 0xff];
 
 pub const LINE_NUMBER_TOKEN: u8 = 0x8d;
 
+// Note: this list all BBC BASIC V tokens even though we only
+// care about BBC BASIC II!
 pub const KEYWORD_TOKENS: [(&str, u8); 128] = [
     ("OTHERWISE", 0x7f),
     ("AND", 0x80),
