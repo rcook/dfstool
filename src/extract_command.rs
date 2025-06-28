@@ -6,7 +6,7 @@ use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
 use std::ffi::OsStr;
 use std::fs::{File, create_dir_all, remove_file};
-use std::io::{Read, Seek, SeekFrom, Write};
+use std::io::{ErrorKind, Read, Seek, SeekFrom, Write};
 use std::path::Path;
 
 pub fn do_extract(
@@ -15,7 +15,14 @@ pub fn do_extract(
     overwrite: bool,
     detokenize: bool,
 ) -> Result<()> {
-    let mut input_file = File::open(input_path)?;
+    let mut input_file = match File::open(input_path) {
+        Ok(f) => f,
+        Err(e) if e.kind() == ErrorKind::NotFound => bail!(
+            "input file {input_path} not found",
+            input_path = input_path.display()
+        ),
+        Err(e) => bail!(e),
+    };
     let catalogue = Catalogue::from_reader(&mut input_file)?;
 
     if !output_dir.exists() {
