@@ -2,19 +2,15 @@ use crate::bbc_basic::{
     END_MARKER, KEYWORDS_BY_NAME, LINE_NUMBER_TOKEN, LINE_NUMBER_TOKENS, REM_TOKEN, TokenGenerator,
     encode_line_number,
 };
+use crate::line_parser::LineParser;
 use anyhow::{Result, anyhow, bail};
 use std::io::Write;
 
 pub fn tokenize_source<W: Write>(mut writer: W, bytes: &[u8]) -> Result<()> {
-    for slice in bytes.split_inclusive(|&byte| byte == 13) {
-        let len = slice.len();
-        if slice[len - 2] != 10 || slice[len - 1] != 13 {
-            bail!("invalid line ending in source")
-        }
-
-        tokenize_line(&mut writer, &slice[0..len - 2])?;
+    let line_parser = LineParser::guess(bytes);
+    for line in line_parser.lines(bytes)? {
+        tokenize_line(&mut writer, line)?;
     }
-
     writer.write_all(&END_MARKER)?;
     Ok(())
 }

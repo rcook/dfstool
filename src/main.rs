@@ -32,6 +32,7 @@ mod file_name;
 mod file_offset;
 mod file_type;
 mod length;
+mod line_parser;
 mod make_command;
 mod manifest;
 mod manifest_file;

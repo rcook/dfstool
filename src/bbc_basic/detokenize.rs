@@ -2,6 +2,7 @@ use crate::bbc_basic::{
     KEYWORDS_BY_TOKEN, LINE_NUMBER_TOKEN, REM_TOKEN, decode_line_number, is_ascii_printable,
     is_token,
 };
+use crate::line_parser::{CR, LF};
 use anyhow::{Result, bail};
 use std::io::Write;
 
@@ -19,7 +20,7 @@ pub fn detokenize_source<W: Write>(mut writer: W, bytes: &[u8], lossless: bool) 
     let mut index = 0;
     while index < bytes.len() {
         let b0 = next!(bytes, index);
-        if b0 != 13 {
+        if b0 != CR {
             bail!("syntax error: file is not valid tokenized BBC BASIC")
         }
 
@@ -95,9 +96,9 @@ fn detokenize_line<W: Write>(
     }
 
     if lossless {
-        writer.write_all(&[10, 13])?;
+        writer.write_all(&[LF, CR])?;
     } else {
-        w!(writer, 10);
+        w!(writer, LF);
     }
     Ok(())
 }
