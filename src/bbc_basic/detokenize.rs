@@ -5,7 +5,7 @@ use crate::bbc_basic::{
 use anyhow::{Result, bail};
 use std::io::Write;
 
-pub fn detokenize_source<W: Write>(mut writer: W, bytes: &[u8], printable: bool) -> Result<()> {
+pub fn detokenize_source<W: Write>(mut writer: W, bytes: &[u8], lossless: bool) -> Result<()> {
     macro_rules! next {
         ($bytes: expr, $index: expr) => {{
             let Some(value) = $bytes.get($index) else {
@@ -32,7 +32,7 @@ pub fn detokenize_source<W: Write>(mut writer: W, bytes: &[u8], printable: bool)
         let line_number = ((b0 as u16) << 8) + b1 as u16;
         let line_len = next!(bytes, index);
         let last = index + line_len as usize - 4;
-        detokenize_line(&mut writer, line_number, &bytes[index..last], printable)?;
+        detokenize_line(&mut writer, line_number, &bytes[index..last], lossless)?;
         index = last;
     }
 
@@ -43,7 +43,7 @@ fn detokenize_line<W: Write>(
     mut writer: W,
     line_number: u16,
     bytes: &[u8],
-    printable: bool,
+    lossless: bool,
 ) -> Result<()> {
     macro_rules! w {
         ($writer: expr, $byte: expr) => {
@@ -79,7 +79,7 @@ fn detokenize_line<W: Write>(
 
                 if token == REM_TOKEN {
                     for &value in iter {
-                        if !printable || is_ascii_printable(value) {
+                        if lossless || is_ascii_printable(value) {
                             w!(writer, value);
                         }
                     }
@@ -87,17 +87,17 @@ fn detokenize_line<W: Write>(
                 }
             }
             value => {
-                if !printable || is_ascii_printable(value) {
+                if lossless || is_ascii_printable(value) {
                     w!(writer, value);
                 }
             }
         }
     }
 
-    if printable {
-        w!(writer, 10);
-    } else {
+    if lossless {
         writer.write_all(&[10, 13])?;
+    } else {
+        w!(writer, 10);
     }
     Ok(())
 }

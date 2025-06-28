@@ -27,12 +27,12 @@ pub enum Command {
         overwrite: bool,
 
         #[arg(
-            help = "Output in lossy printable format (restrict to valid ASCII, normalize line endings)",
-            long = "printable",
-            short = 'p',
+            help = "Output in non-printable lossless format preserving all control characters etc.",
+            long = "lossless",
+            short = 'l',
             default_value_t = false
         )]
-        printable: bool,
+        lossless: bool,
     },
 
     #[command(name = "extract", about = "Extract files and metadata from .ssd file")]
@@ -57,6 +57,14 @@ pub enum Command {
             default_value_t = false
         )]
         no_detokenize: bool,
+
+        #[arg(
+            help = "Output BBC BASIC in non-printable lossless format preserving all control characters etc.",
+            long = "lossless",
+            short = 'l',
+            default_value_t = false
+        )]
+        lossless: bool,
     },
 
     #[command(name = "make", about = "Make .ssd file from files and metadata")]

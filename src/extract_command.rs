@@ -1,5 +1,6 @@
 use crate::bbc_basic::{detokenize_source, is_bbc_basic_file};
 use crate::catalogue::Catalogue;
+use crate::constants::{LOSSLESS_BBC_BASIC_EXT, LOSSY_BBC_BASIC_EXT};
 use crate::file_type::FileType;
 use crate::manifest::Manifest;
 use crate::util::open_for_write;
@@ -14,6 +15,7 @@ pub fn do_extract(
     output_dir: &Path,
     overwrite: bool,
     detokenize: bool,
+    lossless: bool,
 ) -> Result<()> {
     let mut input_file = match File::open(input_path) {
         Ok(f) => f,
@@ -64,7 +66,7 @@ pub fn do_extract(
             if detokenize && matches!(file_type, FileType::TokenizedBasic) {
                 // Attempt to detokenize the file just in case it contains BASIC
                 // Don't fail if it can't be detokenized
-                _ = detokenize_file(&content_path, overwrite);
+                _ = detokenize_file(&content_path, overwrite, lossless);
             }
 
             Ok(d.to_manifest_file(file_type))
@@ -82,20 +84,24 @@ pub fn do_extract(
     Ok(())
 }
 
-fn detokenize_file(input_path: &Path, overwrite: bool) -> Result<()> {
+fn detokenize_file(input_path: &Path, overwrite: bool, lossless: bool) -> Result<()> {
     let output_dir = input_path
         .parent()
         .ok_or_else(|| anyhow!("cannot get parent"))?;
     let file_name = input_path
         .file_name()
         .ok_or_else(|| anyhow!("cannot get file name"))?;
-    let output_path = output_dir.join(format!("{f}.bas", f = file_name.display()));
+    let output_path = output_dir.join(if lossless {
+        format!("{f}{LOSSLESS_BBC_BASIC_EXT}", f = file_name.display())
+    } else {
+        format!("{f}{LOSSY_BBC_BASIC_EXT}", f = file_name.display())
+    });
 
     let output_file = open_for_write(&output_path, overwrite)?;
     let mut input_file = File::open(input_path)?;
     let mut bytes = Vec::new();
     input_file.read_to_end(&mut bytes)?;
-    match detokenize_source(output_file, &bytes, false) {
+    match detokenize_source(output_file, &bytes, lossless) {
         Ok(()) => Ok(()),
         Err(e) => {
             remove_file(&output_path)?;
