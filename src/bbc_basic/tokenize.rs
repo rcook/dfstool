@@ -134,7 +134,7 @@ fn find_keyword_token(word: &str) -> Option<u8> {
 
 #[cfg(test)]
 mod tests {
-    use crate::bbc_basic::tokenize_source;
+    use crate::bbc_basic::{detokenize_source, tokenize_source};
     use anyhow::Result;
     use rstest::rstest;
     use std::io::Cursor;
@@ -199,9 +199,20 @@ mod tests {
 "#;
 
     #[rstest]
-    #[case(&PROG1, PROG1_STR )]
-    #[case(&PROG2, PROG2_STR, )]
-    fn basics(#[case] expected_output: &[u8], #[case] input: &str) -> Result<()> {
+    #[case(PROG1_STR, &PROG1)]
+    #[case(PROG2_STR, &PROG2)]
+    fn detokenize(#[case] expected_output: &str, #[case] input: &[u8]) -> Result<()> {
+        let mut bytes = Vec::new();
+        detokenize_source(Cursor::new(&mut bytes), input)?;
+        let s = String::from_utf8(bytes)?;
+        assert_eq!(expected_output, s);
+        Ok(())
+    }
+
+    #[rstest]
+    #[case(&PROG1, PROG1_STR)]
+    #[case(&PROG2, PROG2_STR)]
+    fn tokenize(#[case] expected_output: &[u8], #[case] input: &str) -> Result<()> {
         let mut bytes = Vec::new();
         tokenize_source(Cursor::new(&mut bytes), input)?;
         assert_eq!(expected_output, bytes);
