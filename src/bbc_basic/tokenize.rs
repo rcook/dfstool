@@ -5,11 +5,9 @@ use std::io::Write;
 pub fn tokenize_source<W: Write>(mut writer: W, source: &str) -> Result<()> {
     for line in source.lines() {
         let line = line.trim();
-        if line.is_empty() {
-            continue;
+        if !line.is_empty() {
+            tokenize_line(&mut writer, line)?;
         }
-
-        tokenize_line(&mut writer, line)?;
     }
 
     writer.write_all(&END_MARKER)?;
@@ -54,25 +52,27 @@ fn tokenize_content(content: &str) -> Result<Vec<u8>> {
     while let Some(ch) = chars.next() {
         match ch {
             '"' => {
-                // String literal
                 output.push(ch as u8);
-                for next_ch in chars.by_ref() {
-                    output.push(next_ch as u8);
-                    if next_ch == '"' {
+                for c in chars.by_ref() {
+                    output.push(c as u8);
+                    if c == '"' {
                         break;
                     }
                 }
             }
             '0'..='9' => match previous_token {
                 Some(token) if LINE_NUMBER_TOKENS.contains(&token) => {
-                    let mut s = String::new();
-                    s.push(ch);
-                    while let Some(&c) = chars.peek() {
-                        if !c.is_ascii_digit() {
-                            break;
+                    let s = {
+                        let mut s = String::new();
+                        s.push(ch);
+                        while let Some(&c) = chars.peek() {
+                            if !c.is_ascii_digit() {
+                                break;
+                            }
+                            s.push(chars.next().unwrap());
                         }
-                        s.push(chars.next().unwrap());
-                    }
+                        s
+                    };
 
                     previous_token = None;
 
@@ -98,42 +98,76 @@ fn tokenize_content(content: &str) -> Result<Vec<u8>> {
                 }
             },
             'A'..='Z' | 'a'..='z' => {
-                let mut word = String::new();
-                word.push(ch);
+                let s = {
+                    let mut s = String::new();
+                    s.push(ch);
+                    while let Some(&c) = chars.peek() {
+                        if !c.is_ascii_alphabetic() && c != '$' && c != '(' {
+                            break;
+                        }
+                        s.push(chars.next().unwrap());
+                    }
+                    s
+                };
 
-                while let Some(&next_ch) = chars.peek() {
-                    if next_ch.is_ascii_alphabetic() || next_ch == '$' || next_ch == '(' {
-                        word.push(chars.next().expect("already peeked"));
-                    } else {
-                        break;
+                struct TokenRun {
+                    index: usize,
+                    token: u8,
+                }
+
+                // Convert ENDPROC to single token instead of two etc.
+                let mut runs: Vec<TokenRun> = Vec::new();
+                let mut start = 0;
+                for i in 0..=s.len() {
+                    if !runs.is_empty() {
+                        let index = runs.len() - 1;
+                        let run = &runs[index];
+                        let word = &s[run.index..i];
+                        if let Some(token) = find_token(word) {
+                            runs[index].token = token;
+                            start = i;
+                            continue;
+                        }
+                    }
+
+                    let word = &s[start..i];
+                    if let Some(token) = find_token(word) {
+                        runs.push(TokenRun {
+                            index: start,
+                            token,
+                        });
+                        start = i;
+                        continue;
                     }
                 }
 
-                if let Some(token) = find_keyword_token(&word) {
-                    output.push(token);
-                    previous_token = Some(token)
-                } else {
-                    for c in word.chars() {
+                for run in runs {
+                    output.push(run.token);
+                    previous_token = Some(run.token);
+                }
+
+                let remainder = &s[start..];
+                if !remainder.is_empty() {
+                    for c in remainder.chars() {
                         output.push(c as u8);
                     }
-                    previous_token = None
+                    previous_token = None;
                 }
             }
-            _ => {
-                output.push(ch as u8);
-            }
+            _ => output.push(ch as u8),
         }
     }
 
     Ok(output)
 }
 
-fn find_keyword_token(word: &str) -> Option<u8> {
+fn find_token(word: &str) -> Option<u8> {
     KEYWORDS_BY_NAME.get(word).copied()
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::bbc_basic::tokenize::tokenize_content;
     use crate::bbc_basic::{detokenize_source, tokenize_source};
     use anyhow::Result;
     use rstest::rstest;
@@ -233,9 +267,23 @@ mod tests {
     #[rstest]
     #[case(&PROG1, PROG1_STR)]
     #[case(&PROG2, PROG2_STR)]
+    #[case(&PROG3, PROG3_STR)]
     fn tokenize(#[case] expected_output: &[u8], #[case] input: &str) -> Result<()> {
         let mut bytes = Vec::new();
         tokenize_source(Cursor::new(&mut bytes), input)?;
+        assert_eq!(expected_output, bytes);
+        Ok(())
+    }
+
+    #[rstest]
+    #[case(&[0xe0], "END")]
+    #[case(&[0xe1], "ENDPROC")]
+    #[case(&[0xe1, 0xed], "ENDPROCNEXT")]
+    #[case(&[0xe1, 0xed, 0xec], "ENDPROCNEXTMOVE")]
+    #[case(&[0xe4, 0xe0], "GOSUBEND")]
+    #[case(&[0xe4, 0xe1, 0xe5], "GOSUBENDPROCGOTO")]
+    fn tokenize_content_basics(#[case] expected_output: &[u8], #[case] input: &str) -> Result<()> {
+        let bytes = tokenize_content(input)?;
         assert_eq!(expected_output, bytes);
         Ok(())
     }
