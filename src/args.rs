@@ -25,6 +25,14 @@ pub enum Command {
             default_value_t = false
         )]
         overwrite: bool,
+
+        #[arg(
+            help = "Output in lossy printable format (restrict to valid ASCII, normalize line endings)",
+            long = "printable",
+            short = 'p',
+            default_value_t = false
+        )]
+        printable: bool,
     },
 
     #[command(name = "extract", about = "Extract files and metadata from .ssd file")]

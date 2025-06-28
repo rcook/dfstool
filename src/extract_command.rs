@@ -95,7 +95,7 @@ fn detokenize_file(input_path: &Path, overwrite: bool) -> Result<()> {
     let mut input_file = File::open(input_path)?;
     let mut bytes = Vec::new();
     input_file.read_to_end(&mut bytes)?;
-    match detokenize_source(output_file, &bytes) {
+    match detokenize_source(output_file, &bytes, false) {
         Ok(()) => Ok(()),
         Err(e) => {
             remove_file(&output_path)?;

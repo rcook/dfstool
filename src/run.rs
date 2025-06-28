@@ -13,7 +13,8 @@ pub fn run() -> Result<()> {
             input_path,
             output_path,
             overwrite,
-        } => do_detokenize(&input_path, &output_path, overwrite)?,
+            printable,
+        } => do_detokenize(&input_path, &output_path, overwrite, printable)?,
         Command::Extract {
             input_path,
             output_dir,

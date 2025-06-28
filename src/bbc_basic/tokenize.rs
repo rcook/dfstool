@@ -325,7 +325,7 @@ mod tests {
     fn detokenize(#[case] expected_source: &str, #[case] input_token_bytes: &[u8]) -> Result<()> {
         let expected_source_bytes = get_source_bytes(expected_source);
         let mut source_bytes = Vec::new();
-        detokenize_source(Cursor::new(&mut source_bytes), input_token_bytes)?;
+        detokenize_source(Cursor::new(&mut source_bytes), input_token_bytes, false)?;
         assert!(!source_bytes.contains(&0xc2));
         assert_eq!(expected_source_bytes, source_bytes);
         Ok(())

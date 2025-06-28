@@ -9,14 +9,17 @@ pub fn do_detokenize(
     input_path: &Path,
     output_path: &Option<PathBuf>,
     overwrite: bool,
+    printable: bool,
 ) -> Result<()> {
     let mut f = File::open(input_path)?;
     let mut bytes = Vec::new();
     f.read_to_end(&mut bytes)?;
 
     let result = match output_path {
-        Some(output_path) => detokenize_source(open_for_write(output_path, overwrite)?, &bytes),
-        None => detokenize_source(stdout(), &bytes),
+        Some(output_path) => {
+            detokenize_source(open_for_write(output_path, overwrite)?, &bytes, printable)
+        }
+        None => detokenize_source(stdout(), &bytes, printable),
     };
 
     match result {
