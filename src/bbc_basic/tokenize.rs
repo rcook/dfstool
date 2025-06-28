@@ -50,16 +50,45 @@ fn tokenize_line<W: Write>(mut writer: W, line: &str) -> Result<()> {
 }
 
 fn tokenize_content(content: &str) -> Result<Vec<u8>> {
-    let mut chars = content.chars().peekable();
+    macro_rules! next {
+        ($bytes: ident, $iter: ident) => {
+            if $iter < $bytes.len() {
+                let index = $iter;
+                $iter += 1;
+                Some($bytes[index])
+            } else {
+                None
+            }
+        };
+    }
+
+    macro_rules! peek {
+        ($bytes: ident, $iter: ident) => {
+            if $iter < $bytes.len() {
+                let index = $iter;
+                Some($bytes[index])
+            } else {
+                None
+            }
+        };
+    }
+
+    // Source must be pure ASCII so we can treat it as a byte array
+    // and eliminate copying of characters
+    assert!(content.is_ascii());
+    let bytes = content.as_bytes();
 
     let mut previous_token = None;
     let mut output = Vec::new();
-    while let Some(ch) = chars.next() {
+    let mut iter = 0;
+    while let Some(byte) = next!(bytes, iter) {
+        let ch = byte as char;
         match ch {
             '"' => {
-                output.push(ch as u8);
-                for c in chars.by_ref() {
-                    output.push(c as u8);
+                output.push(byte);
+                while let Some(byte) = next!(bytes, iter) {
+                    output.push(byte);
+                    let c = byte as char;
                     if c == '"' {
                         break;
                     }
@@ -70,11 +99,12 @@ fn tokenize_content(content: &str) -> Result<Vec<u8>> {
                     let s = {
                         let mut s = String::new();
                         s.push(ch);
-                        while let Some(&c) = chars.peek() {
+                        while let Some(byte) = peek!(bytes, iter) {
+                            let c = byte as char;
                             if !c.is_ascii_digit() {
                                 break;
                             }
-                            s.push(chars.next().unwrap());
+                            s.push(next!(bytes, iter).unwrap() as char);
                         }
                         s
                     };
@@ -93,12 +123,13 @@ fn tokenize_content(content: &str) -> Result<Vec<u8>> {
                     output.push((hi & 0x3f) | 0x40);
                 }
                 _ => {
-                    output.push(ch as u8);
-                    while let Some(&c) = chars.peek() {
+                    output.push(byte);
+                    while let Some(byte) = peek!(bytes, iter) {
+                        let c = byte as char;
                         if !c.is_ascii_digit() && c != '.' {
                             break;
                         }
-                        output.push(chars.next().unwrap() as u8);
+                        output.push(next!(bytes, iter).unwrap());
                     }
                 }
             },
@@ -106,11 +137,12 @@ fn tokenize_content(content: &str) -> Result<Vec<u8>> {
                 let s = {
                     let mut s = String::new();
                     s.push(ch);
-                    while let Some(&c) = chars.peek() {
+                    while let Some(byte) = peek!(bytes, iter) {
+                        let c = byte as char;
                         if !c.is_ascii_alphabetic() && c != '$' && c != '(' {
                             break;
                         }
-                        s.push(chars.next().unwrap());
+                        s.push(next!(bytes, iter).unwrap() as char);
                     }
                     s
                 };
@@ -159,7 +191,7 @@ fn tokenize_content(content: &str) -> Result<Vec<u8>> {
                     previous_token = None;
                 }
             }
-            _ => output.push(ch as u8),
+            _ => output.push(byte),
         }
     }
 
