@@ -50,6 +50,16 @@ codes.
 content of all sectors as well as the original order of catalogue entries
 and start sectors
 
+## References
+
+* [Acorn DFS Disc Format][acorn-dfs-disc-format]
+* [BBC BASIC Token Format][bbc-basic-token-format]
+* [BBC BASIC Binary Line Number Format][bbc-basic-line-number-format]
+
 ## Licence
 
 [MIT License](LICENSE)
+
+[acorn-dfs-disc-format]: https://beebwiki.mdfs.net/Acorn_DFS_disc_format
+[bbc-basic-line-number-format]: https://xania.org/200711/bbc-basic-line-number-format
+[bbc-basic-token-format]: https://www.bbcbasic.net/wiki/doku.php?id=format
