@@ -2,13 +2,12 @@ use crate::bbc_basic::{
     END_MARKER, KEYWORDS_BY_NAME, LINE_NUMBER_TOKEN, LINE_NUMBER_TOKENS, REM_TOKEN, TokenGenerator,
     encode_line_number,
 };
-use crate::line_parser::LineParser;
+use crate::line_ending::LineEnding;
 use anyhow::{Result, anyhow, bail};
 use std::io::Write;
 
 pub fn tokenize_source<W: Write>(mut writer: W, bytes: &[u8]) -> Result<()> {
-    let line_parser = LineParser::guess(bytes);
-    for line in line_parser.lines(bytes)? {
+    for line in LineEnding::guess(bytes).lines(bytes) {
         tokenize_line(&mut writer, line)?;
     }
     writer.write_all(&END_MARKER)?;

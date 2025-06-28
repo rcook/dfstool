@@ -2,7 +2,7 @@ use crate::bbc_basic::{
     KEYWORDS_BY_TOKEN, LINE_NUMBER_TOKEN, REM_TOKEN, decode_line_number, is_ascii_printable,
     is_token,
 };
-use crate::line_parser::{CR, LF};
+use crate::line_ending::{CR, LF};
 use anyhow::{Result, bail};
 use std::io::Write;
 
