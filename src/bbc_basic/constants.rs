@@ -3,6 +3,8 @@ use std::sync::LazyLock;
 
 pub const END_MARKER: [u8; 2] = [0x0d, 0xff];
 
+pub const REM_TOKEN: u8 = 0xf4;
+
 pub const LINE_NUMBER_TOKEN: u8 = 0x8d;
 
 // Note: this list all BBC BASIC V tokens even though we only
@@ -125,7 +127,7 @@ pub const KEYWORD_TOKENS: [(&str, u8); 128] = [
     ("PRINT", 0xf1),
     ("PROC", 0xf2),
     ("READ", 0xf3),
-    ("REM", 0xf4),
+    ("REM", REM_TOKEN),
     ("REPEAT", 0xf5),
     ("REPORT", 0xf6),
     ("RESTORE", 0xf7),

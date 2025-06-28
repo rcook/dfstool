@@ -63,13 +63,7 @@ fn detokenize_line<W: Write>(mut writer: W, line_number: u16, bytes: &[u8]) -> R
                 };
                 write!(writer, "{keyword}")?
             }
-            value => {
-                if value.is_ascii_control() {
-                    write!(writer, "[{value:02X}]")?
-                } else {
-                    write!(writer, "{c}", c = *value as char)?
-                }
-            }
+            value => write!(writer, "{c}", c = *value as char)?,
         }
     }
     writeln!(writer)?;
