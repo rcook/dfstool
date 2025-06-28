@@ -1,48 +1,27 @@
 use crate::bbc_basic::{
-    END_MARKER, KEYWORDS_BY_NAME, LINE_NUMBER_TOKEN, LINE_NUMBER_TOKENS, encode_line_number,
+    END_MARKER, KEYWORDS_BY_NAME, LINE_NUMBER_TOKEN, LINE_NUMBER_TOKENS, REM_TOKEN, TokenGenerator,
+    encode_line_number,
 };
 use anyhow::{Result, anyhow, bail};
 use std::io::Write;
 
-pub fn tokenize_source<W: Write>(mut writer: W, source: &str) -> Result<()> {
-    // BBC BASIC sources must be strictly ASCII!
-    if !source.is_ascii() {
-        bail!("invalid source {source}")
-    }
-
-    for line in source.lines() {
-        let line = line.trim();
-        if !line.is_empty() {
-            tokenize_line(&mut writer, line)?;
+pub fn tokenize_source<W: Write>(mut writer: W, bytes: &[u8]) -> Result<()> {
+    for slice in bytes.split_inclusive(|&byte| byte == 13) {
+        let len = slice.len();
+        if slice[len - 2] != 10 || slice[len - 1] != 13 {
+            bail!("invalid line ending in source")
         }
+
+        tokenize_line(&mut writer, &slice[0..len - 2])?;
     }
 
     writer.write_all(&END_MARKER)?;
-
     Ok(())
 }
 
-fn parse_line_number_and_content(line: &str) -> Result<(u16, &str)> {
-    let (line_number_str, content) = match line.find(|c: char| !c.is_ascii_digit()) {
-        Some(index) => line.split_at(index),
-        None => (line, &line[line.len()..]),
-    };
-
-    if line_number_str.is_empty() {
-        bail!("no line number in {line}")
-    }
-
-    let line_number = line_number_str
-        .parse::<u16>()
-        .map_err(|_| anyhow!("invalid line number: {}", line_number_str))?;
-
-    Ok((line_number, content))
-}
-
-fn tokenize_line<W: Write>(mut writer: W, line: &str) -> Result<()> {
-    let (line_number, content) = parse_line_number_and_content(line)?;
-    let tokens = tokenize_content(content)?;
-
+fn tokenize_line<W: Write>(mut writer: W, bytes: &[u8]) -> Result<()> {
+    let (line_number, bytes) = parse_line_number(bytes)?;
+    let tokens = tokenize_content(bytes)?;
     let line_len = tokens.len() as u8 + 4;
     writer.write_all(&[0x0d])?;
     writer.write_all(&[(line_number >> 8) as u8, (line_number & 0xff) as u8])?;
@@ -51,153 +30,166 @@ fn tokenize_line<W: Write>(mut writer: W, line: &str) -> Result<()> {
     Ok(())
 }
 
-fn tokenize_content(content: &str) -> Result<Vec<u8>> {
-    macro_rules! next {
-        ($bytes: ident, $iter: ident) => {
-            if $iter < $bytes.len() {
-                let index = $iter;
-                $iter += 1;
-                Some($bytes[index])
-            } else {
-                None
-            }
-        };
+fn parse_line_number(bytes: &[u8]) -> Result<(u16, &[u8])> {
+    let mut i = 0;
+    let len = bytes.len();
+
+    // Skip whitespace
+    while i < len && (bytes[i] as char).is_ascii_whitespace() {
+        i += 1;
     }
 
-    macro_rules! peek {
-        ($bytes: ident, $iter: ident) => {
-            if $iter < $bytes.len() {
-                let index = $iter;
-                Some($bytes[index])
-            } else {
-                None
-            }
-        };
+    // Grab digits
+    let mut j = i;
+    if !(bytes[j] as char).is_ascii_digit() {
+        bail!("line number missing from source line")
+    }
+    let mut line_number = (bytes[j] - b'0') as u16;
+    j += 1;
+    while j < len && (bytes[j] as char).is_ascii_digit() {
+        line_number = line_number
+            .checked_mul(10)
+            .and_then(|value| value.checked_add((bytes[j] - b'0') as u16))
+            .ok_or_else(|| anyhow!("invalid line number",))?;
+        j += 1;
     }
 
-    // Source must be pure ASCII so we can treat it as a byte array
-    // and eliminate copying of characters
-    assert!(content.is_ascii());
-    let bytes = content.as_bytes();
+    Ok((line_number, &bytes[j..]))
+}
 
-    let mut previous_token = None;
-    let mut output = Vec::new();
-    let mut iter = 0;
-    while let Some(byte) = next!(bytes, iter) {
-        let ch = byte as char;
-        match ch {
-            '"' => {
-                output.push(byte);
-                while let Some(byte) = next!(bytes, iter) {
-                    output.push(byte);
+fn tokenize_content(bytes: &[u8]) -> Result<Vec<u8>> {
+    let mut generator = TokenGenerator::new(bytes);
+    while let Some(byte) = generator.peek() {
+        process_byte(&mut generator, byte)?
+    }
+    Ok(generator.drain_output())
+}
+
+fn process_byte(generator: &mut TokenGenerator<'_>, byte: u8) -> Result<(), anyhow::Error> {
+    use crate::bbc_basic::TokenGeneratorState::{Comment, LineNumber, Other};
+
+    let ch = byte as char;
+    match (generator.state(), ch) {
+        (Other, '"') => {
+            generator.push_next_assert();
+            while let Some(byte) = generator.next() {
+                generator.push(byte);
+                let c = byte as char;
+                if c == '"' {
+                    break;
+                }
+            }
+        }
+        (Comment | LineNumber, '0'..='9') => {
+            let line_number = read_line_number(generator)?;
+            let (byte0, byte1, byte2) = encode_line_number(line_number);
+            generator.push(LINE_NUMBER_TOKEN);
+            generator.push(byte0);
+            generator.push(byte1);
+            generator.push(byte2);
+            if matches!(generator.state(), LineNumber) {
+                generator.set_state(Other);
+            }
+        }
+        (Other, '0'..='9') => {
+            generator.push_next_assert();
+            while let Some(byte) = generator.peek() {
+                let c = byte as char;
+                if !c.is_ascii_digit() && c != '.' {
+                    break;
+                }
+                generator.push_next_assert();
+            }
+        }
+        (Other, 'A'..='Z' | 'a'..='z') => {
+            let s = {
+                let mut s = String::new();
+                generator.next_assert();
+                s.push(ch);
+                while let Some(byte) = generator.peek() {
                     let c = byte as char;
-                    if c == '"' {
+                    if !c.is_ascii_alphabetic() && c != '$' && c != '(' {
                         break;
                     }
+                    s.push(generator.next_assert() as char);
                 }
+                s
+            };
+
+            struct TokenRun {
+                index: usize,
+                token: u8,
             }
-            '0'..='9' => match previous_token {
-                Some(token) if LINE_NUMBER_TOKENS.contains(&token) => {
-                    let line_number = {
-                        let mut acc = (byte - 48) as u16;
-                        while let Some(byte) = peek!(bytes, iter) {
-                            let c = byte as char;
-                            if !c.is_ascii_digit() {
-                                break;
-                            }
 
-                            next!(bytes, iter).unwrap();
-
-                            acc = acc
-                                .checked_mul(10)
-                                .and_then(|value| value.checked_add((byte - 48) as u16))
-                                .ok_or_else(|| anyhow!("invalid line number in {content}"))?;
-                        }
-                        acc
-                    };
-
-                    previous_token = None;
-
-                    let (byte0, byte1, byte2) = encode_line_number(line_number);
-                    output.push(LINE_NUMBER_TOKEN);
-                    output.push(byte0);
-                    output.push(byte1);
-                    output.push(byte2);
-                }
-                _ => {
-                    output.push(byte);
-                    while let Some(byte) = peek!(bytes, iter) {
-                        let c = byte as char;
-                        if !c.is_ascii_digit() && c != '.' {
-                            break;
-                        }
-                        output.push(next!(bytes, iter).unwrap());
-                    }
-                }
-            },
-            'A'..='Z' | 'a'..='z' => {
-                let s = {
-                    let mut s = String::new();
-                    s.push(ch);
-                    while let Some(byte) = peek!(bytes, iter) {
-                        let c = byte as char;
-                        if !c.is_ascii_alphabetic() && c != '$' && c != '(' {
-                            break;
-                        }
-                        s.push(next!(bytes, iter).unwrap() as char);
-                    }
-                    s
-                };
-
-                struct TokenRun {
-                    index: usize,
-                    token: u8,
-                }
-
-                // Convert ENDPROC to single token instead of two etc.
-                let mut runs: Vec<TokenRun> = Vec::new();
-                let mut start = 0;
-                for i in 0..=s.len() {
-                    if !runs.is_empty() {
-                        let index = runs.len() - 1;
-                        let run = &runs[index];
-                        let word = &s[run.index..i];
-                        if let Some(token) = find_token(word) {
-                            runs[index].token = token;
-                            start = i;
-                            continue;
-                        }
-                    }
-
-                    let word = &s[start..i];
+            // Convert ENDPROC to single token instead of two etc.
+            let mut runs: Vec<TokenRun> = Vec::new();
+            let mut start = 0;
+            for i in 0..=s.len() {
+                if !runs.is_empty() {
+                    let index = runs.len() - 1;
+                    let run = &runs[index];
+                    let word = &s[run.index..i];
                     if let Some(token) = find_token(word) {
-                        runs.push(TokenRun {
-                            index: start,
-                            token,
-                        });
+                        runs[index].token = token;
                         start = i;
                         continue;
                     }
                 }
 
-                for run in runs {
-                    output.push(run.token);
-                    previous_token = Some(run.token);
-                }
-
-                let remainder = &s[start..];
-                if !remainder.is_empty() {
-                    for c in remainder.chars() {
-                        output.push(c as u8);
-                    }
-                    previous_token = None;
+                let word = &s[start..i];
+                if let Some(token) = find_token(word) {
+                    runs.push(TokenRun {
+                        index: start,
+                        token,
+                    });
+                    start = i;
+                    continue;
                 }
             }
-            _ => output.push(byte),
-        }
-    }
 
-    Ok(output)
+            for run in runs {
+                match generator.state() {
+                    Comment => {}
+                    LineNumber => generator.set_state(Other),
+                    Other => {
+                        if run.token == REM_TOKEN {
+                            generator.set_state(Comment);
+                        } else if LINE_NUMBER_TOKENS.contains(&run.token) {
+                            generator.set_state(LineNumber);
+                        }
+                    }
+                }
+                generator.push(run.token);
+            }
+
+            let remainder = &s[start..];
+            if !remainder.is_empty() {
+                for c in remainder.chars() {
+                    generator.push(c as u8);
+                }
+            }
+        }
+        _ => generator.push_next_assert(),
+    };
+    Ok(())
+}
+
+fn read_line_number(generator: &mut TokenGenerator<'_>) -> Result<u16> {
+    let mut line_number = (generator.next_assert() - b'0') as u16;
+    while let Some(byte) = generator.peek() {
+        let c = byte as char;
+        if !c.is_ascii_digit() {
+            break;
+        }
+
+        generator.next_assert();
+
+        line_number = line_number
+            .checked_mul(10)
+            .and_then(|value| value.checked_add((byte - b'0') as u16))
+            .ok_or_else(|| anyhow!("invalid line number",))?;
+    }
+    Ok(line_number)
 }
 
 fn find_token(word: &str) -> Option<u8> {
@@ -224,18 +216,19 @@ mod tests {
         0x20, 0x63, 0x6f, 0x64, 0x65, 0x25, 0x0d, 0xff,
     ];
 
-    const PROG1_STR: &str = r#"   10MODE 7
-   20DIM code% 256
-   30FOR opt% = 0 TO 2 STEP 2
-   40P% = code%
-   50[OPT opt%
-   60 LDA #65
-   70 JSR &FFEE
-   80 RTS
-   90]
-  100NEXT
-  110CALL code%
-"#;
+    const PROG1_STR: &str = concat!(
+        "   10MODE 7\n\r",
+        "   20DIM code% 256\n\r",
+        "   30FOR opt% = 0 TO 2 STEP 2\n\r",
+        "   40P% = code%\n\r",
+        "   50[OPT opt%\n\r",
+        "   60 LDA #65\n\r",
+        "   70 JSR &FFEE\n\r",
+        "   80 RTS\n\r",
+        "   90]\n\r",
+        "  100NEXT\n\r",
+        "  110CALL code%\n\r"
+    );
 
     const PROG2: [u8; 202] = [
         0x0d, 0x00, 0x0a, 0x07, 0xeb, 0x20, 0x37, 0x0d, 0x00, 0x14, 0x11, 0xf1, 0x20, 0x8a, 0x35,
@@ -254,22 +247,23 @@ mod tests {
         0x0d, 0x00, 0x96, 0x05, 0xf8, 0x0d, 0xff,
     ];
 
-    const PROG2_STR: &str = r#"   10MODE 7
-   20PRINT TAB(5) "HELLO"
-   30GOSUB 140
-   40GOTO 60
-   50PRINT "SKIP THIS"
-   60FOR a% = 0 TO 4
-   70IF a% = 0 THEN 80 ELSE 100
-   80PRINT "a% is zero"
-   90GOTO 110
-  100PRINT "a% is nonzero"
-  110PRINT "ENDIF"
-  120NEXT
-  130END
-  140PRINT "A SUBROUTINE"
-  150RETURN
-"#;
+    const PROG2_STR: &str = concat!(
+        "   10MODE 7\n\r",
+        "   20PRINT TAB(5) \"HELLO\"\n\r",
+        "   30GOSUB 140\n\r",
+        "   40GOTO 60\n\r",
+        "   50PRINT \"SKIP THIS\"\n\r",
+        "   60FOR a% = 0 TO 4\n\r",
+        "   70IF a% = 0 THEN 80 ELSE 100\n\r",
+        "   80PRINT \"a% is zero\"\n\r",
+        "   90GOTO 110\n\r",
+        "  100PRINT \"a% is nonzero\"\n\r",
+        "  110PRINT \"ENDIF\"\n\r",
+        "  120NEXT\n\r",
+        "  130END\n\r",
+        "  140PRINT \"A SUBROUTINE\"\n\r",
+        "  150RETURN\n\r"
+    );
 
     const PROG3: [u8; 85] = [
         0x0d, 0x00, 0x0a, 0x0f, 0xf1, 0x8a, 0x35, 0x29, 0x22, 0x48, 0x45, 0x4c, 0x4c, 0x4f, 0x22,
@@ -280,16 +274,17 @@ mod tests {
         0x0b, 0x3d, 0x22, 0x46, 0x55, 0x4e, 0x43, 0x22, 0x0d, 0xff,
     ];
 
-    const PROG3_STR: &str = r#"   10PRINTTAB(5)"HELLO"
-   20PROCSUB
-   30PRINTFNFUNC
-   40END
-   50DEFPROCSUB
-   60PRINT"SUB"
-   70ENDPROC
-   80DEFFNFUNC
-   90="FUNC"
-"#;
+    const PROG3_STR: &str = concat!(
+        "   10PRINTTAB(5)\"HELLO\"\n\r",
+        "   20PROCSUB\n\r",
+        "   30PRINTFNFUNC\n\r",
+        "   40END\n\r",
+        "   50DEFPROCSUB\n\r",
+        "   60PRINT\"SUB\"\n\r",
+        "   70ENDPROC\n\r",
+        "   80DEFFNFUNC\n\r",
+        "   90=\"FUNC\"\n\r"
+    );
 
     const PROG4: [u8; 272] = [
         0x0d, 0x00, 0x00, 0xd2, 0xf4, 0x22, 0x16, 0x07, 0x84, 0x9d, 0x20, 0x20, 0x20, 0x20, 0x20,
@@ -314,14 +309,12 @@ mod tests {
     ];
 
     const PROG4_STR: &str = concat!(
-        "    0REM\"\u{16}\u{7}ORDEG                                      ORDEGMODDEGOR24800  THE STAIRWAY TO HELL      ORDEG ORDEGMODDEGOR24800  THE STAIRWAY TO HELL      ORDEG ORDEGMODDEGOR     www.stairwaytohell.com     ORDEG ORDEG                                        ",
-        "
-   10 *EXEC
-   20 MODE 7
-   30 *FX 200,2
-   40 PAGE=&1900
-   50 CHAIN \"B.ELITE\"
-"
+        "    0REM\"\u{16}\u{07}\u{84}\u{9D}                                      \u{84}\u{9D}\u{83}\u{9D}\u{84}\u{8D}     THE STAIRWAY TO HELL      \u{84}\u{9D} \u{84}\u{9D}\u{83}\u{9D}\u{84}\u{8D}     THE STAIRWAY TO HELL      \u{84}\u{9D} \u{84}\u{9D}\u{83}\u{9D}\u{84}     www.stairwaytohell.com     \u{84}\u{9D} \u{84}\u{9D}                                        \n\r",
+        "   10 *EXEC\n\r",
+        "   20 MODE 7\n\r",
+        "   30 *FX 200,2\n\r",
+        "   40 PAGE=&1900\n\r",
+        "   50 CHAIN \"B.ELITE\"\n\r"
     );
 
     #[rstest]
@@ -329,11 +322,12 @@ mod tests {
     #[case(PROG2_STR, &PROG2)]
     #[case(PROG3_STR, &PROG3)]
     #[case(PROG4_STR, &PROG4)]
-    fn detokenize(#[case] expected_output: &str, #[case] input: &[u8]) -> Result<()> {
-        let mut bytes = Vec::new();
-        detokenize_source(Cursor::new(&mut bytes), input)?;
-        let s = String::from_utf8(bytes)?;
-        assert_eq!(expected_output, s);
+    fn detokenize(#[case] expected_source: &str, #[case] input_token_bytes: &[u8]) -> Result<()> {
+        let expected_source_bytes = get_source_bytes(expected_source);
+        let mut source_bytes = Vec::new();
+        detokenize_source(Cursor::new(&mut source_bytes), input_token_bytes)?;
+        assert!(!source_bytes.contains(&0xc2));
+        assert_eq!(expected_source_bytes, source_bytes);
         Ok(())
     }
 
@@ -341,11 +335,12 @@ mod tests {
     #[case(&PROG1, PROG1_STR)]
     #[case(&PROG2, PROG2_STR)]
     #[case(&PROG3, PROG3_STR)]
-    // #[case(&PROG4, PROG4_STR)] // Not implemented yet!
-    fn tokenize(#[case] expected_output: &[u8], #[case] input: &str) -> Result<()> {
-        let mut bytes = Vec::new();
-        tokenize_source(Cursor::new(&mut bytes), input)?;
-        assert_eq!(expected_output, bytes);
+    #[case(&PROG4, PROG4_STR)]
+    fn tokenize(#[case] expected_token_bytes: &[u8], #[case] input_source: &str) -> Result<()> {
+        let input_bytes = get_source_bytes(input_source);
+        let mut token_bytes = Vec::new();
+        tokenize_source(Cursor::new(&mut token_bytes), &input_bytes)?;
+        assert_eq!(expected_token_bytes, token_bytes);
         Ok(())
     }
 
@@ -356,9 +351,21 @@ mod tests {
     #[case(&[0xe1, 0xed, 0xec], "ENDPROCNEXTMOVE")]
     #[case(&[0xe4, 0xe0], "GOSUBEND")]
     #[case(&[0xe4, 0xe1, 0xe5], "GOSUBENDPROCGOTO")]
-    fn tokenize_content_basics(#[case] expected_output: &[u8], #[case] input: &str) -> Result<()> {
-        let bytes = tokenize_content(input)?;
-        assert_eq!(expected_output, bytes);
+    fn tokenize_content_basics(
+        #[case] expected_token_bytes: &[u8],
+        #[case] input_source: &str,
+    ) -> Result<()> {
+        let input_bytes = get_source_bytes(input_source);
+        let token_bytes = tokenize_content(&input_bytes)?;
+        assert_eq!(expected_token_bytes, token_bytes);
         Ok(())
+    }
+
+    fn get_source_bytes(source: &str) -> Vec<u8> {
+        // Cast characters individually to u8 in order to throw away
+        // the 0xc2 Unicode control character
+        let bytes = source.chars().map(|c| c as u8).collect::<Vec<_>>();
+        assert!(!bytes.contains(&0xc2));
+        bytes
     }
 }

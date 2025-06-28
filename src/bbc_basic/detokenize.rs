@@ -1,4 +1,6 @@
-use crate::bbc_basic::{KEYWORDS_BY_TOKEN, LINE_NUMBER_TOKEN, decode_line_number};
+use crate::bbc_basic::{
+    KEYWORDS_BY_TOKEN, LINE_NUMBER_TOKEN, REM_TOKEN, decode_line_number, is_token,
+};
 use anyhow::{Result, bail};
 use std::io::Write;
 
@@ -37,6 +39,12 @@ pub fn detokenize_source<W: Write>(mut writer: W, bytes: &[u8]) -> Result<()> {
 }
 
 fn detokenize_line<W: Write>(mut writer: W, line_number: u16, bytes: &[u8]) -> Result<()> {
+    macro_rules! w {
+        ($writer: expr, $byte: expr) => {
+            $writer.write_all(&[*$byte])?
+        };
+    }
+
     macro_rules! next {
         ($iter: expr) => {{
             let Some(value) = $iter.next() else {
@@ -57,15 +65,22 @@ fn detokenize_line<W: Write>(mut writer: W, line_number: u16, bytes: &[u8]) -> R
                 let line_number = decode_line_number(b0, b1, b2);
                 write!(writer, "{line_number}")?;
             }
-            value if (value & 0x80) != 0 => {
-                let Some(keyword) = KEYWORDS_BY_TOKEN.get(value) else {
-                    bail!("unknown token 0x{value:02x}")
+            &token if is_token(token) => {
+                let Some(keyword) = KEYWORDS_BY_TOKEN.get(&token) else {
+                    bail!("unknown token 0x{token:02x}")
                 };
-                write!(writer, "{keyword}")?
+                write!(writer, "{keyword}")?;
+
+                if token == REM_TOKEN {
+                    for value in iter {
+                        w!(writer, value)
+                    }
+                    break;
+                }
             }
-            value => write!(writer, "{c}", c = *value as char)?,
+            value => w!(writer, value),
         }
     }
-    writeln!(writer)?;
+    write!(writer, "\u{0a}\u{0d}")?;
     Ok(())
 }

@@ -1,6 +1,8 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
 
+pub const TOKEN_MASK: u8 = 0x80;
+
 pub const END_MARKER: [u8; 2] = [0x0d, 0xff];
 
 pub const REM_TOKEN: u8 = 0xf4;

@@ -6,11 +6,11 @@ use std::io::Read;
 use std::path::Path;
 
 pub fn do_tokenize(input_path: &Path, output_path: &Path, overwrite: bool) -> Result<()> {
-    let mut f = File::open(input_path)?;
-    let mut source = String::new();
-    f.read_to_string(&mut source)?;
+    let mut input_file = File::open(input_path)?;
+    let mut input_bytes = Vec::new();
+    input_file.read_to_end(&mut input_bytes)?;
 
-    match tokenize_source(open_for_write(output_path, overwrite)?, &source) {
+    match tokenize_source(open_for_write(output_path, overwrite)?, &input_bytes) {
         Ok(()) => Ok(()),
         Err(e) => {
             remove_file(output_path)?;
