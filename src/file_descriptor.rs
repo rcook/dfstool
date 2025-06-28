@@ -15,7 +15,7 @@ pub struct FileDescriptor {
 }
 
 impl FileDescriptor {
-    pub fn new(
+    pub const fn new(
         file_name: FileName,
         directory: Directory,
         locked: bool,

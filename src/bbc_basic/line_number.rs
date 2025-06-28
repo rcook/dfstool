@@ -1,13 +1,13 @@
 // https://xania.org/200711/bbc-basic-line-number-format
 
-pub fn encode_line_number(line_number: u16) -> (u8, u8, u8) {
+pub const fn encode_line_number(line_number: u16) -> (u8, u8, u8) {
     let hi = (line_number >> 8) as u8;
     let lo = (line_number & 0xff) as u8;
     let top_bits = ((lo & 0b11000000) >> 2) + ((hi & 0b11000000) >> 4);
     (top_bits ^ 0x54, (lo & 0x3f) | 0x40, (hi & 0x3f) | 0x40)
 }
 
-pub fn decode_line_number(b0: u8, b1: u8, b2: u8) -> u16 {
+pub const fn decode_line_number(b0: u8, b1: u8, b2: u8) -> u16 {
     let t0 = b0 ^ 0x54;
     let ll = (t0 & 0b00110000) >> 4;
     let hh = (t0 & 0b00001100) >> 2;

@@ -50,7 +50,7 @@ impl Catalogue {
         ))
     }
 
-    pub fn new(
+    pub const fn new(
         disc_title: DiscTitle,
         cycle_number: CycleNumber,
         file_offset: FileOffset,
@@ -69,12 +69,12 @@ impl Catalogue {
     }
 
     pub fn write_to(&self, bytes: &mut [u8]) -> Result<()> {
-        self.disc_title.write_to(bytes)?;
+        self.disc_title.write_to(bytes);
         self.cycle_number.write_to(bytes)?;
-        self.file_offset.write_to(bytes)?;
-        self.boot_option.write_to(bytes)?;
-        self.disc_size.write_to(bytes)?;
-        CatalogueEntry::write_to(bytes, &self.entries)?;
+        self.file_offset.write_to(bytes);
+        self.boot_option.write_to(bytes);
+        self.disc_size.write_to(bytes);
+        CatalogueEntry::write_to(bytes, &self.entries);
         Ok(())
     }
 
@@ -98,7 +98,7 @@ impl Catalogue {
                 length = entry.length,
                 start_sector = entry.start_sector,
                 extra = extra
-            )
+            );
         }
     }
 }

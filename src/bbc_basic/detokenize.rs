@@ -80,7 +80,7 @@ fn detokenize_line<W: Write>(
                 if token == REM_TOKEN {
                     for &value in iter {
                         if !printable || is_ascii_printable(value) {
-                            w!(writer, value)
+                            w!(writer, value);
                         }
                     }
                     break;
@@ -88,16 +88,16 @@ fn detokenize_line<W: Write>(
             }
             value => {
                 if !printable || is_ascii_printable(value) {
-                    w!(writer, value)
+                    w!(writer, value);
                 }
             }
         }
     }
 
     if printable {
-        w!(writer, 10)
+        w!(writer, 10);
     } else {
-        writer.write_all(&[10, 13])?
+        writer.write_all(&[10, 13])?;
     }
     Ok(())
 }

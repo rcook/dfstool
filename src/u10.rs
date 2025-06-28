@@ -6,12 +6,12 @@ macro_rules! u10 {
 
         impl $name {
             #[allow(unused)]
-            pub fn as_usize(&self) -> usize {
+            pub const fn as_usize(&self) -> usize {
                 self.0 as usize
             }
 
             #[allow(unused)]
-            pub fn as_u64(&self) -> u64 {
+            pub const fn as_u64(&self) -> u64 {
                 self.0 as u64
             }
         }

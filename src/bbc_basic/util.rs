@@ -8,7 +8,7 @@ pub fn is_ascii_printable(value: u8) -> bool {
     (32..=126).contains(&value)
 }
 
-pub fn is_token(value: u8) -> bool {
+pub const fn is_token(value: u8) -> bool {
     (value & TOKEN_MASK) != 0
 }
 

@@ -8,7 +8,7 @@ use std::convert::From;
 pub struct FileOffset(u8);
 
 impl FileOffset {
-    pub fn number(&self) -> u8 {
+    pub const fn number(&self) -> u8 {
         self.0 >> 3
     }
 }
@@ -27,12 +27,11 @@ impl FileOffset {
         Self::new(value)
     }
 
-    pub fn write_to(&self, bytes: &mut [u8]) -> Result<()> {
+    pub fn write_to(&self, bytes: &mut [u8]) {
         bytes[SECTOR_SIZE + 5] = self.0;
-        Ok(())
     }
 
-    fn is_in_range(value: u8) -> bool {
+    const fn is_in_range(value: u8) -> bool {
         (value & 0b00000111) == 0
     }
 }

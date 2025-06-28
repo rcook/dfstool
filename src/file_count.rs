@@ -5,7 +5,7 @@ use std::result::Result as StdResult;
 pub struct FileCount(u8);
 
 impl FileCount {
-    pub fn as_u8(&self) -> u8 {
+    pub const fn as_u8(&self) -> u8 {
         self.0
     }
 }

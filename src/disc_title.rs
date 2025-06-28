@@ -18,10 +18,9 @@ impl DiscTitle {
         s.parse()
     }
 
-    pub fn write_to(&self, bytes: &mut [u8]) -> Result<()> {
+    pub fn write_to(&self, bytes: &mut [u8]) {
         let temp = self.0.as_bytes();
         bytes[0..temp.len()].copy_from_slice(temp);
-        Ok(())
     }
 }
 

@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 
 pub fn do_detokenize(
     input_path: &Path,
-    output_path: &Option<PathBuf>,
+    output_path: Option<&PathBuf>,
     overwrite: bool,
     printable: bool,
 ) -> Result<()> {

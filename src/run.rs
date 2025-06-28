@@ -14,7 +14,7 @@ pub fn run() -> Result<()> {
             output_path,
             overwrite,
             printable,
-        } => do_detokenize(&input_path, &output_path, overwrite, printable)?,
+        } => do_detokenize(&input_path, output_path.as_ref(), overwrite, printable)?,
         Command::Extract {
             input_path,
             output_dir,

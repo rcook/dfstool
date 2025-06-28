@@ -60,7 +60,7 @@ fn parse_line_number(bytes: &[u8]) -> Result<(u16, &[u8])> {
 fn tokenize_content(bytes: &[u8]) -> Result<Vec<u8>> {
     let mut generator = TokenGenerator::new(bytes);
     while let Some(byte) = generator.peek() {
-        process_byte(&mut generator, byte)?
+        process_byte(&mut generator, byte)?;
     }
     Ok(generator.drain_output())
 }
@@ -102,6 +102,11 @@ fn process_byte(generator: &mut TokenGenerator<'_>, byte: u8) -> Result<(), anyh
             }
         }
         (Other, 'A'..='Z' | 'a'..='z') => {
+            struct TokenRun {
+                index: usize,
+                token: u8,
+            }
+
             let s = {
                 let mut s = String::new();
                 generator.next_assert();
@@ -115,11 +120,6 @@ fn process_byte(generator: &mut TokenGenerator<'_>, byte: u8) -> Result<(), anyh
                 }
                 s
             };
-
-            struct TokenRun {
-                index: usize,
-                token: u8,
-            }
 
             // Convert ENDPROC to single token instead of two etc.
             let mut runs: Vec<TokenRun> = Vec::new();
@@ -143,7 +143,6 @@ fn process_byte(generator: &mut TokenGenerator<'_>, byte: u8) -> Result<(), anyh
                         token,
                     });
                     start = i;
-                    continue;
                 }
             }
 
@@ -170,7 +169,7 @@ fn process_byte(generator: &mut TokenGenerator<'_>, byte: u8) -> Result<(), anyh
             }
         }
         _ => generator.push_next_assert(),
-    };
+    }
     Ok(())
 }
 

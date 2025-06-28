@@ -24,7 +24,7 @@ impl CycleNumber {
         Ok(())
     }
 
-    fn is_in_range(value: u8) -> bool {
+    const fn is_in_range(value: u8) -> bool {
         value <= 99
     }
 

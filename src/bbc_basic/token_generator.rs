@@ -14,7 +14,7 @@ pub struct TokenGenerator<'a> {
 }
 
 impl<'a> TokenGenerator<'a> {
-    pub fn new(bytes: &'a [u8]) -> Self {
+    pub const fn new(bytes: &'a [u8]) -> Self {
         // Treat bytes as ASCII even if they contain Unicode!
         Self {
             state: TokenGeneratorState::Other,
@@ -25,11 +25,11 @@ impl<'a> TokenGenerator<'a> {
         }
     }
 
-    pub fn state(&self) -> &TokenGeneratorState {
+    pub const fn state(&self) -> &TokenGeneratorState {
         &self.state
     }
 
-    pub fn set_state(&mut self, value: TokenGeneratorState) {
+    pub const fn set_state(&mut self, value: TokenGeneratorState) {
         self.state = value;
     }
 
@@ -67,6 +67,6 @@ impl<'a> TokenGenerator<'a> {
 
     pub fn push_next_assert(&mut self) {
         let value = self.next_assert();
-        self.push(value)
+        self.push(value);
     }
 }

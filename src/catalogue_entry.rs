@@ -19,14 +19,17 @@ impl CatalogueEntry {
             .collect()
     }
 
-    pub fn write_to(bytes: &mut [u8], entries: &[Self]) -> Result<()> {
+    pub fn write_to(bytes: &mut [u8], entries: &[Self]) {
         for (index, entry) in entries.iter().enumerate() {
-            entry.write_to_inner(bytes, index)?
+            entry.write_to_inner(bytes, index);
         }
-        Ok(())
     }
 
-    pub fn new(descriptor: FileDescriptor, length: Length, start_sector: StartSector) -> Self {
+    pub const fn new(
+        descriptor: FileDescriptor,
+        length: Length,
+        start_sector: StartSector,
+    ) -> Self {
         Self {
             descriptor,
             length,
@@ -76,7 +79,7 @@ impl CatalogueEntry {
         ))
     }
 
-    fn write_to_inner(&self, bytes: &mut [u8], index: usize) -> Result<()> {
+    fn write_to_inner(&self, bytes: &mut [u8], index: usize) {
         let offset = (index + 1) * 8;
         let s = self.descriptor.file_name.as_str();
         let len = s.len();
@@ -105,7 +108,5 @@ impl CatalogueEntry {
             << (6 + (length >> 16))
             << (4 + (start_sector >> 8))) as u8;
         bytes[offset2 + 6] = extra_bits;
-
-        Ok(())
     }
 }

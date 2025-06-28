@@ -64,7 +64,7 @@ pub fn do_extract(
             if detokenize && matches!(file_type, FileType::TokenizedBasic) {
                 // Attempt to detokenize the file just in case it contains BASIC
                 // Don't fail if it can't be detokenized
-                _ = detokenize_file(&content_path, overwrite)
+                _ = detokenize_file(&content_path, overwrite);
             }
 
             Ok(d.to_manifest_file(file_type))
