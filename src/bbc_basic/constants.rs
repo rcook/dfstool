@@ -9,7 +9,7 @@ pub const REM_TOKEN: u8 = 0xf4;
 
 pub const LINE_NUMBER_TOKEN: u8 = 0x8d;
 
-// Note: this list all BBC BASIC V tokens even though we only
+// Note: this lists all BBC BASIC V tokens even though we only
 // care about BBC BASIC II!
 pub const KEYWORD_TOKENS: [(&str, u8); 128] = [
     ("OTHERWISE", 0x7f),
