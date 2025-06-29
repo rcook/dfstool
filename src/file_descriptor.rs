@@ -1,5 +1,6 @@
 use crate::address::Address;
 use crate::directory::Directory;
+use crate::disc_side::DiscSide;
 use crate::file_name::FileName;
 use crate::file_type::FileType;
 use crate::manifest_file::ManifestFile;
@@ -9,6 +10,7 @@ use std::path::PathBuf;
 pub struct FileDescriptor {
     pub file_name: FileName,
     pub directory: Directory,
+    pub disc_side: DiscSide,
     pub locked: bool,
     pub load_address: Address,
     pub execution_address: Address,
@@ -18,6 +20,7 @@ impl FileDescriptor {
     pub const fn new(
         file_name: FileName,
         directory: Directory,
+        disc_side: DiscSide,
         locked: bool,
         load_address: Address,
         execution_address: Address,
@@ -25,6 +28,7 @@ impl FileDescriptor {
         Self {
             file_name,
             directory,
+            disc_side,
             locked,
             load_address,
             execution_address,
@@ -47,6 +51,7 @@ impl FileDescriptor {
         ManifestFile {
             file_name: self.file_name.clone(),
             directory: self.directory,
+            disc_side: self.disc_side,
             locked: self.locked,
             load_address: self.load_address,
             execution_address: self.execution_address,

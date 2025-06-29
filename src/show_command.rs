@@ -1,9 +1,10 @@
 use crate::catalogue::Catalogue;
+use crate::disc_side::DISC_SIDE_0;
 use anyhow::Result;
 use std::path::Path;
 
 pub fn do_show(ssd_path: &Path) -> Result<()> {
-    let catalogue = Catalogue::from_file(ssd_path)?;
+    let catalogue = Catalogue::from_file(ssd_path, *DISC_SIDE_0)?;
     println!("Title: \"{}\"", catalogue.disc_title);
     println!("Cycle number: {}", catalogue.cycle_number);
     println!("File number: {}", catalogue.file_offset.number());

@@ -3,13 +3,14 @@ use crate::catalogue::Catalogue;
 use crate::catalogue_entry::CatalogueEntry;
 use crate::constants::{MANIFEST_VERSION, SECTOR_SIZE, START_SECTOR};
 use crate::cycle_number::CycleNumber;
+use crate::disc_side::DISC_SIDE_0;
 use crate::disc_size::DiscSize;
 use crate::file_count::FileCount;
 use crate::length::Length;
 use crate::manifest::Manifest;
+use crate::manifest_file::compare_by_file_spec;
 use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
-use std::cmp::Ordering;
 use std::fs::{File, create_dir_all, metadata};
 use std::io::{Read, Write};
 use std::path::Path;
@@ -30,17 +31,7 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
         bail!("unsupported manifest version {version}");
     }
 
-    manifest.files.sort_by(|a, b| {
-        match a.directory.partial_cmp(&b.directory) {
-            Some(ordering) if ordering != Ordering::Equal => return ordering,
-            _ => {}
-        }
-        match a.file_name.partial_cmp(&b.file_name) {
-            Some(ordering) if ordering != Ordering::Equal => return ordering,
-            _ => {}
-        }
-        Ordering::Equal
-    });
+    manifest.files.sort_by(compare_by_file_spec);
 
     let disc_size: DiscSize = 800.try_into()?;
     let mut bytes = vec![0u8; u16::from(disc_size) as usize * SECTOR_SIZE];
@@ -48,6 +39,10 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
     let mut start_sector = START_SECTOR;
     let mut entries = Vec::new();
     for file in manifest.files {
+        if file.disc_side != *DISC_SIDE_0 {
+            todo!(".dsd support not implemented yet")
+        }
+
         let content_path = manifest_dir.join(&file.content_path);
         let m = metadata(&content_path)?;
         let length: Length = <u32 as TryFrom<u64>>::try_from(m.len())?.try_into()?;
