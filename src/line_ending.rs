@@ -9,11 +9,11 @@ pub enum LineEnding {
     Cr,   // native Acorn line ending (*BUILD)
     LfCr, // native Acorn line ending (*SPOOL)
     CrLf, // native Windows line ending
-    Lf,   // native Posix line ending: default if best guess impossible
+    Lf,   // native Posix line ending
 }
 
 impl LineEnding {
-    pub fn guess(bytes: &[u8]) -> Self {
+    pub fn guess(bytes: &[u8]) -> Option<Self> {
         let mut previous_byte = None;
         let mut ptr = 0;
         let len = bytes.len();
@@ -21,10 +21,10 @@ impl LineEnding {
             let byte = bytes[ptr];
 
             match (previous_byte, byte) {
-                (Some(CR), LF) => return Self::CrLf,
-                (Some(CR), _) => return Self::Cr,
-                (Some(LF), CR) => return Self::LfCr,
-                (Some(LF), _) => return Self::Lf,
+                (Some(CR), LF) => return Some(Self::CrLf),
+                (Some(CR), _) => return Some(Self::Cr),
+                (Some(LF), CR) => return Some(Self::LfCr),
+                (Some(LF), _) => return Some(Self::Lf),
                 _ => {}
             }
 
@@ -32,7 +32,7 @@ impl LineEnding {
             ptr += 1;
         }
 
-        Self::Lf
+        None
     }
 
     pub const fn lines(self, bytes: &[u8]) -> Lines<'_> {

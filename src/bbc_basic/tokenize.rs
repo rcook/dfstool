@@ -7,7 +7,10 @@ use anyhow::{Result, anyhow, bail};
 use std::io::Write;
 
 pub fn tokenize_source<W: Write>(mut writer: W, bytes: &[u8]) -> Result<()> {
-    for line in LineEnding::guess(bytes).lines(bytes) {
+    // If we can't guess the line ending type, assume LF.
+    let line_ending = LineEnding::guess(bytes).unwrap_or(LineEnding::Lf);
+
+    for line in line_ending.lines(bytes) {
         let line = line?;
         tokenize_line(&mut writer, line)?;
     }
