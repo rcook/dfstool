@@ -6,7 +6,7 @@ use crate::manifest::Manifest;
 use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
 use std::ffi::OsStr;
-use std::fs::{File, create_dir_all, remove_file};
+use std::fs::{File, create_dir_all};
 use std::io::{ErrorKind, Read, Seek, SeekFrom, Write};
 use std::path::Path;
 
@@ -103,11 +103,5 @@ fn detokenize_file(input_path: &Path, overwrite: bool, lossless: bool) -> Result
     let mut input_file = File::open(input_path)?;
     let mut bytes = Vec::new();
     input_file.read_to_end(&mut bytes)?;
-    match detokenize_source(output_file, &bytes, lossless) {
-        Ok(()) => Ok(()),
-        Err(e) => {
-            remove_file(&output_path)?;
-            bail!(e)
-        }
-    }
+    detokenize_source(output_file, &bytes, lossless)
 }

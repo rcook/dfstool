@@ -1,7 +1,7 @@
 use crate::bbc_basic::detokenize_source;
 use crate::util::open_for_write;
-use anyhow::{Result, bail};
-use std::fs::{File, remove_file};
+use anyhow::Result;
+use std::fs::File;
 use std::io::{Read, stdout};
 use std::path::{Path, PathBuf};
 
@@ -14,21 +14,11 @@ pub fn do_detokenize(
     let mut f = File::open(input_path)?;
     let mut bytes = Vec::new();
     f.read_to_end(&mut bytes)?;
-
-    let result = match output_path {
+    match output_path {
         Some(output_path) => {
-            detokenize_source(open_for_write(output_path, overwrite)?, &bytes, lossless)
+            detokenize_source(open_for_write(output_path, overwrite)?, &bytes, lossless)?;
         }
-        None => detokenize_source(stdout(), &bytes, lossless),
-    };
-
-    match result {
-        Ok(()) => Ok(()),
-        Err(e) => {
-            if let Some(output_path) = output_path {
-                remove_file(output_path)?;
-            }
-            bail!(e)
-        }
+        None => detokenize_source(stdout(), &bytes, lossless)?,
     }
+    Ok(())
 }
