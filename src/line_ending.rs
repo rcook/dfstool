@@ -15,10 +15,10 @@ pub enum LineEnding {
 impl LineEnding {
     pub fn guess(bytes: &[u8]) -> Option<Self> {
         let mut previous_byte = None;
-        let mut ptr = 0;
+        let mut pos = 0;
         let len = bytes.len();
-        while ptr < len {
-            let byte = bytes[ptr];
+        while pos < len {
+            let byte = bytes[pos];
 
             match (previous_byte, byte) {
                 (Some(CR), LF) => return Some(Self::CrLf),
@@ -29,7 +29,7 @@ impl LineEnding {
             }
 
             previous_byte = Some(byte);
-            ptr += 1;
+            pos += 1;
         }
 
         None
@@ -43,7 +43,7 @@ impl LineEnding {
 pub struct Lines<'a> {
     line_ending: LineEnding,
     bytes: &'a [u8],
-    ptr: usize,
+    pos: usize,
     len: usize,
     line_start: usize,
     previous_byte: Option<u8>,
@@ -54,7 +54,7 @@ impl<'a> Lines<'a> {
         Self {
             line_ending,
             bytes,
-            ptr: 0,
+            pos: 0,
             len: bytes.len(),
             line_start: 0,
             previous_byte: None,
@@ -68,31 +68,31 @@ impl<'a> Iterator for Lines<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         use crate::line_ending::LineEnding::{Cr, CrLf, Lf, LfCr};
 
-        while self.ptr < self.len {
-            assert!(self.ptr <= self.len);
-            assert!(self.line_start <= self.ptr);
-            assert!(self.ptr == 0 && self.previous_byte.is_none() || self.previous_byte.is_some());
+        while self.pos < self.len {
+            assert!(self.pos <= self.len);
+            assert!(self.line_start <= self.pos);
+            assert!(self.pos == 0 && self.previous_byte.is_none() || self.previous_byte.is_some());
 
-            let byte = self.bytes[self.ptr];
+            let byte = self.bytes[self.pos];
             let line = match (&self.line_ending, self.previous_byte, byte) {
-                (Cr, _, CR) | (Lf, _, LF) => Some(&self.bytes[self.line_start..self.ptr]),
+                (Cr, _, CR) | (Lf, _, LF) => Some(&self.bytes[self.line_start..self.pos]),
                 (CrLf, Some(CR), LF) | (LfCr, Some(LF), CR) => {
-                    Some(&self.bytes[self.line_start..self.ptr - 1])
+                    Some(&self.bytes[self.line_start..self.pos - 1])
                 }
                 (CrLf, _, LF) | (LfCr, _, CR) => {
                     return Some(Err(anyhow!(
-                        "invalid line ending at position {ptr}",
-                        ptr = self.ptr
+                        "invalid line ending at position {pos}",
+                        pos = self.pos
                     )));
                 }
                 _ => None,
             };
 
             self.previous_byte = Some(byte);
-            self.ptr += 1;
+            self.pos += 1;
 
             if line.is_some() {
-                self.line_start = self.ptr;
+                self.line_start = self.pos;
                 return Ok(line).transpose();
             }
         }
