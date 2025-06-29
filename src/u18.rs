@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! u18 {
     ($name: ident) => {
-        #[derive(Clone, Copy, Debug, PartialEq, serde::Serialize)]
+        #[derive(Clone, Copy, Debug, PartialEq)]
         pub struct $name(u32);
 
         impl $name {
@@ -51,6 +51,15 @@ macro_rules! u18 {
                 };
                 let value = temp.try_into().map_err(serde::de::Error::custom)?;
                 Ok(value)
+            }
+        }
+
+        impl serde::Serialize for $name {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde::Serializer,
+            {
+                serializer.serialize_str(&format!("&{value:06X}", value = self.0))
             }
         }
 
