@@ -92,10 +92,10 @@ impl CatalogueEntry {
 
         let offset2 = offset + SECTOR_SIZE;
 
-        let load_address = self.descriptor.load_address.as_usize();
-        let execution_address = self.descriptor.execution_address.as_usize();
-        let length = self.length.as_usize();
-        let start_sector = self.start_sector.as_usize();
+        let load_address = self.descriptor.load_address.as_u32();
+        let execution_address = self.descriptor.execution_address.as_u32();
+        let length = self.length.as_u32();
+        let start_sector = self.start_sector.as_u16();
 
         bytes[offset2] = u8::try_from(load_address & 0xff)?;
         bytes[offset2 + 1] = u8::try_from((load_address >> 8) & 0xff)?;
@@ -104,14 +104,22 @@ impl CatalogueEntry {
         bytes[offset2 + 4] = u8::try_from(length & 0xff)?;
         bytes[offset2 + 5] = u8::try_from((length >> 8) & 0xff)?;
         bytes[offset2 + 7] = u8::try_from(start_sector & 0xff)?;
+        bytes[offset2 + 6] =
+            Self::make_extra_bits(load_address, execution_address, length, start_sector)?;
+        Ok(())
+    }
 
-        let extra_bits = u8::try_from(
+    fn make_extra_bits(
+        load_address: u32,
+        execution_address: u32,
+        length: u32,
+        start_sector: u16,
+    ) -> Result<u8> {
+        Ok(u8::try_from(
             (load_address >> 16)
                 << (2 + (execution_address >> 16))
                 << (6 + (length >> 16))
                 << (4 + (start_sector >> 8)),
-        )?;
-        bytes[offset2 + 6] = extra_bits;
-        Ok(())
+        )?)
     }
 }
