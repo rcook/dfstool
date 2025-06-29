@@ -15,13 +15,15 @@ Acorn DFS .ssd File Manager
 
 ## Examples
 
-Extract contents of a disc image `elite.ssd` into a directory name `elite`:
+Extract contents of a disc image `elite.ssd` into a directory name `elite` and
+detokenize any BBC BASIC programs::
 
 ```bash
 dfstool extract elite.ssd elite
 ```
 
-Make a disc image named `elite-new.ssd` from the manifest file `elite/elite.ssd.json`:
+Make a disc image named `elite-new.ssd` from the manifest file `elite/elite.ssd.json`
+and referenced files:
 
 ```bash
 dfstool make elite/elite.ssd.json elite-new.ssd
