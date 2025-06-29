@@ -80,6 +80,7 @@ pub fn do_extract(
         manifest_file,
         &Manifest {
             version: Some(MANIFEST_VERSION),
+            disc_title: Some(catalogue.disc_title),
             files,
         },
     )?;

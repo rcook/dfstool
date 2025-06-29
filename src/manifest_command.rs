@@ -2,7 +2,6 @@ use crate::bbc_basic::is_bbc_basic_file;
 use crate::constants::MANIFEST_VERSION;
 use crate::directory::Directory;
 use crate::disc_side::DISC_SIDE_0;
-use crate::file_name::FileName;
 use crate::file_type::{FileType, KnownFileType};
 use crate::manifest::Manifest;
 use crate::manifest_file::ManifestFile;
@@ -15,15 +14,16 @@ use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 pub fn do_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -> Result<()> {
+    let dir_name = dir
+        .file_name()
+        .and_then(OsStr::to_str)
+        .ok_or_else(|| anyhow!("cannot get directory name"))?;
+
     // If output path is not specified, then infer from the directory name
     let output_path = if let Some(p) = output_path {
         p
     } else {
-        let file_name = dir
-            .file_name()
-            .and_then(OsStr::to_str)
-            .ok_or_else(|| anyhow!("cannot get directory name"))?;
-        &dir.join(format!("{file_name}.json"))
+        &dir.join(format!("{dir_name}.json"))
     };
 
     let manifest_dir = output_path
@@ -50,11 +50,17 @@ pub fn do_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -
         }
     }
 
+    let disc_title = match dir_name.parse() {
+        Ok(t) => t,
+        Err(_) => "Untitled".parse().unwrap(),
+    };
+
     let manifest_file = open_for_write(output_path, overwrite)?;
     serde_json::to_writer_pretty(
         manifest_file,
         &Manifest {
             version: Some(MANIFEST_VERSION),
+            disc_title: Some(disc_title),
             files,
         },
     )?;
@@ -88,9 +94,7 @@ fn make_file(manifest_dir: &Path, path: &Path) -> Result<Option<ManifestFile>> {
         _ => (Directory::ROOT, file_name),
     };
 
-    let file_name: FileName = if let Ok(f) = file_name_str.parse() {
-        f
-    } else {
+    let Ok(file_name) = file_name_str.parse() else {
         eprintln!(
             "WARNING: Skipping file {path} since a valid DFS file name cannot be inferred",
             path = path.display()

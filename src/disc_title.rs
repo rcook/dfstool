@@ -2,11 +2,13 @@ use crate::catalogue_bytes::CatalogueBytes;
 use crate::constants::SECTOR_SIZE;
 use crate::util::is_disc_title_char;
 use anyhow::{Error, Result, bail};
+use serde::de::Error as SerdeError;
+use serde::{Deserialize, Deserializer, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::result::Result as StdResult;
 use std::str::FromStr;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct DiscTitle(String);
 
 impl DiscTitle {
@@ -39,5 +41,15 @@ impl FromStr for DiscTitle {
 impl Display for DiscTitle {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Display::fmt(&self.0, f)
+    }
+}
+
+impl<'de> Deserialize<'de> for DiscTitle {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        s.parse().map_err(SerdeError::custom)
     }
 }

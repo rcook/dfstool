@@ -99,7 +99,6 @@ the .ssd file's DFS catalogue.
 
 ## TBD
 
-* Add disc title, boot option etc. to manifest
 * Support .dsd files
 * Add a "roundtripping" mode (see comments in _Notes_) that would retain the
 content of all sectors as well as the original order of catalogue entries
