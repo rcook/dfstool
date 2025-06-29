@@ -1,8 +1,8 @@
 use crate::bbc_basic::{
-    KEYWORDS_BY_TOKEN, LINE_NUMBER_TOKEN, REM_TOKEN, decode_line_number, is_ascii_printable,
-    is_token,
+    KEYWORDS_BY_TOKEN, LINE_NUMBER_TOKEN, REM_TOKEN, decode_line_number, is_token,
 };
 use crate::line_ending::{CR, LF};
+use crate::util::is_ascii_printable;
 use anyhow::{Result, bail};
 use std::io::Write;
 

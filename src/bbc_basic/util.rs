@@ -4,10 +4,6 @@ use std::fs::File;
 use std::io::{ErrorKind, Read, Seek, SeekFrom};
 use std::path::Path;
 
-pub fn is_ascii_printable(value: u8) -> bool {
-    (32..=126).contains(&value)
-}
-
 pub const fn is_token(value: u8) -> bool {
     (value & TOKEN_MASK) != 0
 }
@@ -23,9 +19,6 @@ pub fn is_bbc_basic_file(content_path: &Path) -> Result<bool> {
     // https://www.bbcbasic.net/wiki/doku.php?id=format
     let mut bytes = [0; 2];
     f.read_exact(&mut bytes)?;
-    if bytes != END_MARKER {
-        return Ok(false);
-    }
 
-    Ok(true)
+    Ok(bytes == END_MARKER)
 }

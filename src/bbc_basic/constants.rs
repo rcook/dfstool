@@ -157,7 +157,7 @@ const LINE_NUMBER_KEYWORDS: [&str; 4] = ["ELSE", "GOTO", "GOSUB", "THEN"];
 
 pub static LINE_NUMBER_TOKENS: LazyLock<HashSet<u8>> = LazyLock::new(|| {
     LINE_NUMBER_KEYWORDS
-        .map(|name| *KEYWORDS_BY_NAME.get(name).expect("must exist"))
+        .map(|name| *KEYWORDS_BY_NAME.get(name).unwrap())
         .into_iter()
         .collect()
 });

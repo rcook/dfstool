@@ -15,7 +15,6 @@ pub struct TokenGenerator<'a> {
 
 impl<'a> TokenGenerator<'a> {
     pub const fn new(bytes: &'a [u8]) -> Self {
-        // Treat bytes as ASCII even if they contain Unicode!
         Self {
             state: TokenGeneratorState::Other,
             bytes,
@@ -57,8 +56,7 @@ impl<'a> TokenGenerator<'a> {
     }
 
     pub fn next_assert(&mut self) -> u8 {
-        self.next()
-            .expect("should check with peek before calling this")
+        self.next().unwrap()
     }
 
     pub fn push(&mut self, value: u8) {
