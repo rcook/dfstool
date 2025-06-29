@@ -53,7 +53,7 @@ impl From<Directory> for char {
 
 impl Display for Directory {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{c}", c = self.0)
+        Display::fmt(&self.0, f)
     }
 }
 

@@ -50,7 +50,7 @@ impl CycleNumber {
 
 impl Display for CycleNumber {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{value}", value = self.0)
+        Display::fmt(&self.0, f)
     }
 }
 

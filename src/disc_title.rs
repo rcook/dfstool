@@ -38,6 +38,6 @@ impl FromStr for DiscTitle {
 
 impl Display for DiscTitle {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{s}", s = self.0)
+        Display::fmt(&self.0, f)
     }
 }
