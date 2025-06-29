@@ -19,7 +19,7 @@ impl CatalogueEntry {
             .collect()
     }
 
-    pub fn write_to(bytes: &mut [u8], entries: &[Self]) {
+    pub fn write_to_catalogue(bytes: &mut [u8], entries: &[Self]) {
         for (index, entry) in entries.iter().enumerate() {
             entry.write_to_inner(bytes, index);
         }

@@ -68,13 +68,13 @@ impl Catalogue {
         }
     }
 
-    pub fn write_to(&self, bytes: &mut [u8]) -> Result<()> {
-        self.disc_title.write_to(bytes);
-        self.cycle_number.write_to(bytes)?;
-        self.file_offset.write_to(bytes);
-        self.boot_option.write_to(bytes);
-        self.disc_size.write_to(bytes);
-        CatalogueEntry::write_to(bytes, &self.entries);
+    pub fn write_to_catalogue(&self, bytes: &mut [u8]) -> Result<()> {
+        self.disc_title.write_to_catalogue(bytes);
+        self.cycle_number.write_to_catalogue(bytes)?;
+        self.file_offset.write_to_catalogue(bytes);
+        self.boot_option.write_to_catalogue(bytes);
+        self.disc_size.write_to_catalogue(bytes);
+        CatalogueEntry::write_to_catalogue(bytes, &self.entries);
         Ok(())
     }
 

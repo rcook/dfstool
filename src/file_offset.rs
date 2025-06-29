@@ -27,7 +27,7 @@ impl FileOffset {
         Self::new(value)
     }
 
-    pub fn write_to(&self, bytes: &mut [u8]) {
+    pub fn write_to_catalogue(&self, bytes: &mut [u8]) {
         bytes[SECTOR_SIZE + 5] = self.0;
     }
 

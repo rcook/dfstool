@@ -83,7 +83,7 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
         entries,
     );
 
-    catalogue.write_to(&mut bytes)?;
+    catalogue.write_to_catalogue(&mut bytes)?;
 
     let output_dir = output_path
         .parent()

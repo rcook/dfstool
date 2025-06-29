@@ -16,7 +16,7 @@ impl DiscSize {
         disc_size.try_into()
     }
 
-    pub fn write_to(self, bytes: &mut [u8]) {
+    pub fn write_to_catalogue(self, bytes: &mut [u8]) {
         let hi = (self.0 >> 8) as u8;
         let lo = (self.0 & 0xff) as u8;
         bytes[SECTOR_SIZE + 7] = lo;

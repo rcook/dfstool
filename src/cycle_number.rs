@@ -19,7 +19,7 @@ impl CycleNumber {
         Self::new(Self::from_bcd(bytes[SECTOR_SIZE + 4])?)
     }
 
-    pub fn write_to(&self, bytes: &mut [u8]) -> Result<()> {
+    pub fn write_to_catalogue(&self, bytes: &mut [u8]) -> Result<()> {
         bytes[SECTOR_SIZE + 4] = Self::to_bcd(self.0)?;
         Ok(())
     }
