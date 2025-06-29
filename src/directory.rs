@@ -17,7 +17,7 @@ impl Directory {
         self.0 == ROOT_DIR
     }
 
-    pub const fn as_char(self) -> char {
+    pub const fn to_char(self) -> char {
         self.0
     }
 }
@@ -42,6 +42,12 @@ impl TryFrom<char> for Directory {
         }
 
         Ok(Self(value))
+    }
+}
+
+impl From<Directory> for char {
+    fn from(value: Directory) -> Self {
+        value.0
     }
 }
 

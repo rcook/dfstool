@@ -25,6 +25,6 @@ impl TryFrom<u8> for FileCount {
 
 impl From<FileCount> for u8 {
     fn from(value: FileCount) -> Self {
-        value.to_u8()
+        value.0
     }
 }

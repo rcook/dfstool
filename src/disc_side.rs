@@ -16,6 +16,12 @@ impl DiscSide {
     }
 }
 
+impl DiscSide {
+    pub const fn is_default(self) -> bool {
+        self.0 == 0
+    }
+}
+
 impl TryFrom<u8> for DiscSide {
     type Error = Error;
 
@@ -30,7 +36,7 @@ impl TryFrom<u8> for DiscSide {
 
 impl From<DiscSide> for u8 {
     fn from(value: DiscSide) -> Self {
-        value.to_u8()
+        value.0
     }
 }
 

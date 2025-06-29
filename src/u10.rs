@@ -30,7 +30,7 @@ macro_rules! u10 {
 
         impl std::convert::From<$name> for u16 {
             fn from(value: $name) -> Self {
-                value.to_u16()
+                value.0
             }
         }
     };

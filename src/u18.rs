@@ -65,7 +65,7 @@ macro_rules! u18 {
 
         impl std::convert::From<$name> for u32 {
             fn from(value: $name) -> Self {
-                value.to_u32()
+                value.0
             }
         }
     };

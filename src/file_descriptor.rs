@@ -36,15 +36,17 @@ impl FileDescriptor {
     }
 
     pub fn content_path(&self) -> PathBuf {
-        if self.directory.is_root() {
-            PathBuf::from(self.file_name.to_string())
-        } else {
-            PathBuf::from(format!(
-                "{directory}.{file_name}",
-                directory = self.directory,
-                file_name = self.file_name
-            ))
+        let mut s = String::with_capacity(11);
+        if !self.disc_side.is_default() {
+            s.push((self.disc_side.to_u8() + b'0') as char);
+            s.push('.');
         }
+        if !self.directory.is_root() {
+            s.push(self.directory.into());
+            s.push('.');
+        }
+        s.push_str(self.file_name.as_str());
+        PathBuf::from(s)
     }
 
     pub fn to_manifest_file(&self, file_type: FileType) -> ManifestFile {
