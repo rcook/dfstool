@@ -22,9 +22,9 @@ macro_rules! u18 {
             }
         }
 
-        impl std::fmt::Display for $name {
+        impl std::fmt::UpperHex for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{value:06X}", value = self.0)
+                std::fmt::UpperHex::fmt(&self.0, f)
             }
         }
 

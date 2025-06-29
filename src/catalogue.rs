@@ -90,7 +90,7 @@ impl Catalogue {
 
             let extra = String::from(if d.locked { " (locked)" } else { "" });
             println!(
-                "  {directory}.{file_name:<10} {load_address} {execution_address} {length} {start_sector}{extra}",
+                "  {directory}.{file_name:<10} {load_address:06X} {execution_address:06X} {length:06X} {start_sector}{extra}",
                 directory = d.directory,
                 file_name = d.file_name.to_string(),
                 load_address = d.load_address,
