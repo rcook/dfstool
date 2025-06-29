@@ -10,25 +10,29 @@ use std::path::PathBuf;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ManifestFile {
-    #[serde(rename = "file_name")]
+    #[serde(rename = "fileName", alias = "file_name")]
     pub file_name: FileName,
 
     #[serde(rename = "directory")]
     pub directory: Directory,
 
-    #[serde(rename = "disc_side", default = "ManifestFile::default_disc_side")]
+    #[serde(
+        rename = "discSide",
+        alias = "disc_side",
+        default = "ManifestFile::default_disc_side"
+    )]
     pub disc_side: DiscSide,
 
     #[serde(rename = "locked")]
     pub locked: bool,
 
-    #[serde(rename = "load_address")]
+    #[serde(rename = "loadAddress", alias = "load_address")]
     pub load_address: Address,
 
-    #[serde(rename = "execution_address")]
+    #[serde(rename = "executionAddress", alias = "execution_address")]
     pub execution_address: Address,
 
-    #[serde(rename = "content_path")]
+    #[serde(rename = "contentPath", alias = "content_path")]
     pub content_path: PathBuf,
 
     #[serde(rename = "type")]
