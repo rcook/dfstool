@@ -30,7 +30,7 @@ pub fn detokenize_source<W: Write>(mut writer: W, bytes: &[u8], lossless: bool) 
         }
 
         let b1 = next!(bytes, index);
-        let line_number = ((b0 as u16) << 8) + b1 as u16;
+        let line_number = (u16::from(b0) << 8) + u16::from(b1);
         let line_len = next!(bytes, index);
         let last = index + line_len as usize - 4;
         detokenize_line(&mut writer, line_number, &bytes[index..last], lossless)?;

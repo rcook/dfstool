@@ -14,8 +14,8 @@ pub enum BootOption {
 impl BootOption {
     pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
         let temp = bytes[SECTOR_SIZE + 6];
-        assert_eq!(0, temp & 0b11001100);
-        Ok(match (temp & 0b00110000) >> 4 {
+        assert_eq!(0, temp & 0b1100_1100);
+        Ok(match (temp & 0b0011_0000) >> 4 {
             0 => Self::None,
             1 => Self::Load,
             2 => Self::Run,

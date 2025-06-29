@@ -12,3 +12,7 @@ serde_json = "1.0.140"
 
 [dev-dependencies]
 rstest = "0.25.0"
+
+[lints.clippy]
+missing_const_for_fn = "deny"
+pedantic = "deny"

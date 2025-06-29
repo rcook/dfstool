@@ -59,9 +59,9 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
             temp_start_sector,
         ));
 
-        let temp_len = m.len() as usize;
+        let temp_len = usize::try_from(m.len())?;
         let (q, r) = (temp_len / SECTOR_SIZE, temp_len % SECTOR_SIZE);
-        let sector_count = q + if r > 0 { 1 } else { 0 };
+        let sector_count = q + usize::from(r > 0);
 
         let mut f = File::open(&content_path)?;
         let start_offset = start_sector * SECTOR_SIZE;

@@ -32,7 +32,7 @@ impl FileOffset {
     }
 
     const fn is_in_range(value: u8) -> bool {
-        (value & 0b00000111) == 0
+        value.trailing_zeros() >= 3
     }
 }
 

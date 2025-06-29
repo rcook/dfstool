@@ -30,7 +30,7 @@ impl CycleNumber {
 
     fn from_bcd(value: u8) -> Result<u8> {
         let hi = value >> 4;
-        let lo = value & 0b00001111;
+        let lo = value & 0b0000_1111;
         if hi > 9 || lo > 9 {
             bail!("invalid BCD byte {value}")
         }

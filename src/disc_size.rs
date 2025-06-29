@@ -9,9 +9,9 @@ impl DiscSize {
     pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
         let lo_bits = bytes[SECTOR_SIZE + 7];
         let temp = bytes[SECTOR_SIZE + 6];
-        assert_eq!(0, temp & 0b11001100);
-        let hi_bits = ((temp & 0b00000011) as u16) << 8;
-        let disc_size = hi_bits + lo_bits as u16;
+        assert_eq!(0, temp & 0b1100_1100);
+        let hi_bits = u16::from(temp & 0b0000_0011) << 8;
+        let disc_size = hi_bits + u16::from(lo_bits);
         assert!((2..=1023).contains(&disc_size));
         disc_size.try_into()
     }

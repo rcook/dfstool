@@ -17,7 +17,7 @@ pub fn tokenize_source<W: Write>(mut writer: W, bytes: &[u8]) -> Result<()> {
 fn tokenize_line<W: Write>(mut writer: W, bytes: &[u8]) -> Result<()> {
     let (line_number, bytes) = parse_line_number(bytes)?;
     let tokens = tokenize_content(bytes)?;
-    let line_len = tokens.len() as u8 + 4;
+    let line_len = u8::try_from(tokens.len() + 4)?;
     writer.write_all(&[0x0d])?;
     writer.write_all(&[(line_number >> 8) as u8, (line_number & 0xff) as u8])?;
     writer.write_all(&[line_len])?;
@@ -39,12 +39,12 @@ fn parse_line_number(bytes: &[u8]) -> Result<(u16, &[u8])> {
     if !(bytes[j] as char).is_ascii_digit() {
         bail!("line number missing from source line")
     }
-    let mut line_number = (bytes[j] - b'0') as u16;
+    let mut line_number = u16::from(bytes[j] - b'0');
     j += 1;
     while j < len && (bytes[j] as char).is_ascii_digit() {
         line_number = line_number
             .checked_mul(10)
-            .and_then(|value| value.checked_add((bytes[j] - b'0') as u16))
+            .and_then(|value| value.checked_add(u16::from(bytes[j] - b'0')))
             .ok_or_else(|| anyhow!("invalid line number",))?;
         j += 1;
     }
@@ -169,7 +169,7 @@ fn process_byte(generator: &mut TokenGenerator<'_>, byte: u8) -> Result<(), anyh
 }
 
 fn read_line_number(generator: &mut TokenGenerator<'_>) -> Result<u16> {
-    let mut line_number = (generator.next_assert() - b'0') as u16;
+    let mut line_number = u16::from(generator.next_assert() - b'0');
     while let Some(byte) = generator.peek() {
         let c = byte as char;
         if !c.is_ascii_digit() {
@@ -180,7 +180,7 @@ fn read_line_number(generator: &mut TokenGenerator<'_>) -> Result<u16> {
 
         line_number = line_number
             .checked_mul(10)
-            .and_then(|value| value.checked_add((byte - b'0') as u16))
+            .and_then(|value| value.checked_add(u16::from(byte - b'0')))
             .ok_or_else(|| anyhow!("invalid line number",))?;
     }
     Ok(line_number)

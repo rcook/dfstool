@@ -3,19 +3,19 @@
 pub const fn encode_line_number(line_number: u16) -> (u8, u8, u8) {
     let hi = (line_number >> 8) as u8;
     let lo = (line_number & 0xff) as u8;
-    let top_bits = ((lo & 0b11000000) >> 2) + ((hi & 0b11000000) >> 4);
+    let top_bits = ((lo & 0b1100_0000) >> 2) + ((hi & 0b1100_0000) >> 4);
     (top_bits ^ 0x54, (lo & 0x3f) | 0x40, (hi & 0x3f) | 0x40)
 }
 
 pub const fn decode_line_number(b0: u8, b1: u8, b2: u8) -> u16 {
     let t0 = b0 ^ 0x54;
-    let ll = (t0 & 0b00110000) >> 4;
-    let hh = (t0 & 0b00001100) >> 2;
+    let ll = (t0 & 0b0011_0000) >> 4;
+    let hh = (t0 & 0b0000_1100) >> 2;
 
-    let t1 = b1 & 0b00111111;
+    let t1 = b1 & 0b0011_1111;
     let lo = t1 + (ll << 6);
 
-    let t2 = b2 & 0b00111111;
+    let t2 = b2 & 0b0011_1111;
     let hi = t2 + (hh << 6);
 
     ((hi as u16) << 8) + lo as u16

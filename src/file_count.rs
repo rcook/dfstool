@@ -30,6 +30,6 @@ impl TryFrom<usize> for FileCount {
             bail!("invalid file count {value}")
         }
 
-        Ok(Self(value as u8))
+        Ok(Self(u8::try_from(value)?))
     }
 }

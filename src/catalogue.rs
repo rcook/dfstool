@@ -74,7 +74,7 @@ impl Catalogue {
         self.file_offset.write_to_catalogue(bytes);
         self.boot_option.write_to_catalogue(bytes);
         self.disc_size.write_to_catalogue(bytes);
-        CatalogueEntry::write_to_catalogue(bytes, &self.entries);
+        CatalogueEntry::write_to_catalogue(bytes, &self.entries)?;
         Ok(())
     }
 
