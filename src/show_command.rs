@@ -1,5 +1,6 @@
 use crate::catalogue::Catalogue;
 use crate::disc_side::DISC_SIDE_0;
+use crate::file_spec::FileSpec;
 use anyhow::Result;
 use std::path::Path;
 
@@ -11,7 +12,11 @@ pub fn do_show(ssd_path: &Path) -> Result<()> {
     println!("Boot: {:?}", catalogue.boot_option);
     println!("Sectors: {:?}", u16::from(catalogue.disc_size));
     println!("Files:");
-    for entry in &catalogue.entries {
+
+    let mut entries = catalogue.entries;
+    entries.sort_by(|a, b| FileSpec::compare(&a.descriptor, &b.descriptor));
+
+    for entry in &entries {
         let d = &entry.descriptor;
 
         let extra = String::from(if d.locked { " (locked)" } else { "" });

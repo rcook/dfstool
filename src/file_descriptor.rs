@@ -2,6 +2,7 @@ use crate::address::Address;
 use crate::directory::Directory;
 use crate::disc_side::DiscSide;
 use crate::file_name::FileName;
+use crate::file_spec::FileSpec;
 use crate::file_type::FileType;
 use crate::manifest_file::ManifestFile;
 use std::path::PathBuf;
@@ -60,5 +61,19 @@ impl FileDescriptor {
             content_path: self.content_path(),
             r#type: file_type,
         }
+    }
+}
+
+impl FileSpec for FileDescriptor {
+    fn disc_side(&self) -> &DiscSide {
+        &self.disc_side
+    }
+
+    fn directory(&self) -> &Directory {
+        &self.directory
+    }
+
+    fn file_name(&self) -> &FileName {
+        &self.file_name
     }
 }

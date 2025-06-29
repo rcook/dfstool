@@ -2,10 +2,10 @@ use crate::directory::Directory;
 use crate::disc_side::DISC_SIDE_0;
 use crate::file_descriptor::FileDescriptor;
 use crate::file_name::FileName;
+use crate::file_spec::FileSpec;
 use crate::file_type::FileType;
 use crate::{address::Address, disc_side::DiscSide};
 use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
 use std::path::PathBuf;
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -56,18 +56,16 @@ impl ManifestFile {
     }
 }
 
-pub fn compare_by_file_spec(a: &ManifestFile, b: &ManifestFile) -> Ordering {
-    match a.disc_side.partial_cmp(&b.disc_side) {
-        Some(ordering) if ordering != Ordering::Equal => return ordering,
-        _ => {}
+impl FileSpec for ManifestFile {
+    fn disc_side(&self) -> &DiscSide {
+        &self.disc_side
     }
-    match a.directory.partial_cmp(&b.directory) {
-        Some(ordering) if ordering != Ordering::Equal => return ordering,
-        _ => {}
+
+    fn directory(&self) -> &Directory {
+        &self.directory
     }
-    match a.file_name.partial_cmp(&b.file_name) {
-        Some(ordering) if ordering != Ordering::Equal => return ordering,
-        _ => {}
+
+    fn file_name(&self) -> &FileName {
+        &self.file_name
     }
-    Ordering::Equal
 }

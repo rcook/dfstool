@@ -17,6 +17,7 @@ mod file_count;
 mod file_descriptor;
 mod file_name;
 mod file_offset;
+mod file_spec;
 mod file_type;
 mod length;
 mod line_ending;

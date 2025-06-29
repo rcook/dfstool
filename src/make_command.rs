@@ -6,9 +6,9 @@ use crate::cycle_number::CycleNumber;
 use crate::disc_side::DISC_SIDE_0;
 use crate::disc_size::DiscSize;
 use crate::file_count::FileCount;
+use crate::file_spec::FileSpec;
 use crate::length::Length;
 use crate::manifest::Manifest;
-use crate::manifest_file::compare_by_file_spec;
 use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
 use std::fs::{File, create_dir_all, metadata};
@@ -31,7 +31,7 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
         bail!("unsupported manifest version {version}");
     }
 
-    manifest.files.sort_by(compare_by_file_spec);
+    manifest.files.sort_by(FileSpec::compare);
 
     let disc_size: DiscSize = 800.try_into()?;
     let mut bytes = vec![0u8; u16::from(disc_size) as usize * SECTOR_SIZE];
