@@ -13,6 +13,8 @@ const ROOT_DIR: char = '$';
 pub struct Directory(char);
 
 impl Directory {
+    pub const ROOT: Self = Self(ROOT_DIR);
+
     pub const fn is_root(self) -> bool {
         self.0 == ROOT_DIR
     }

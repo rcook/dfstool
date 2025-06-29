@@ -84,6 +84,26 @@ pub enum Command {
         overwrite: bool,
     },
 
+    #[command(
+        name = "manifest",
+        about = "Generate a manifest file for the content in a given directory"
+    )]
+    Manifest {
+        #[arg(help = "Directory", required = true, value_parser = parse_absolute_path)]
+        dir: PathBuf,
+
+        #[arg(help = "Output file", long = "output", short = 'o', value_parser = parse_absolute_path)]
+        output_path: Option<PathBuf>,
+
+        #[arg(
+            help = "Overwrite output file if it exists",
+            long = "overwrite",
+            short = 'f',
+            default_value_t = false
+        )]
+        overwrite: bool,
+    },
+
     #[command(name = "show", about = "Show catalogue")]
     Show {
         #[arg(help = "Path to .ssd file", required = true, value_parser = parse_absolute_path)]

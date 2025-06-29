@@ -23,6 +23,7 @@ mod length;
 mod line_ending;
 mod make_command;
 mod manifest;
+mod manifest_command;
 mod manifest_file;
 mod run;
 mod show_command;

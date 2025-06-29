@@ -44,7 +44,7 @@ pub fn do_extract(
     manifest_file_name.push_str(".json");
     let manifest_path = output_dir.join(manifest_file_name);
 
-    let manifest_files = catalogue
+    let files = catalogue
         .entries
         .into_iter()
         .map(|entry| {
@@ -80,7 +80,7 @@ pub fn do_extract(
         manifest_file,
         &Manifest {
             version: Some(MANIFEST_VERSION),
-            files: manifest_files,
+            files,
         },
     )?;
 

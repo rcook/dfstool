@@ -2,6 +2,7 @@ use crate::args::{Args, Command};
 use crate::detokenize_command::do_detokenize;
 use crate::extract_command::do_extract;
 use crate::make_command::do_make;
+use crate::manifest_command::do_manifest;
 use crate::show_command::do_show;
 use crate::tokenize_command::do_tokenize;
 use anyhow::Result;
@@ -33,6 +34,11 @@ pub fn run() -> Result<()> {
             output_path,
             overwrite,
         } => do_make(&manifest_path, &output_path, overwrite)?,
+        Command::Manifest {
+            dir,
+            output_path,
+            overwrite,
+        } => do_manifest(&dir, output_path.as_ref(), overwrite)?,
         Command::Show { ssd_path } => do_show(&ssd_path)?,
         Command::Tokenize {
             input_path,
