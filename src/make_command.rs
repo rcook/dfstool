@@ -4,7 +4,6 @@ use crate::catalogue_entry::CatalogueEntry;
 use crate::constants::{MANIFEST_VERSION, SECTOR_SIZE, START_SECTOR};
 use crate::cycle_number::CycleNumber;
 use crate::disc_side::DISC_SIDE_0;
-use crate::disc_size::DiscSize;
 use crate::file_count::FileCount;
 use crate::file_spec::FileSpec;
 use crate::length::Length;
@@ -33,8 +32,7 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
 
     manifest.files.sort_by(FileSpec::compare);
 
-    let disc_size: DiscSize = 800.try_into()?;
-    let mut bytes = vec![0u8; u16::from(disc_size) as usize * SECTOR_SIZE];
+    let mut bytes = vec![0u8; u16::from(manifest.disc_size) as usize * SECTOR_SIZE];
 
     let mut start_sector = START_SECTOR;
     let mut entries = Vec::new();
@@ -65,18 +63,19 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
         start_sector += sector_count;
     }
 
+    let disc_size = manifest.disc_size;
+
     if start_sector > u16::from(disc_size) as usize {
         bail!("exceeded capacity of disc")
     }
 
-    let disc_title = "DISC".parse()?;
     let cycle_number = CycleNumber::new(95)?;
     let file_count: FileCount = u8::try_from(entries.len())?.try_into()?;
     let file_offset = file_count.into();
     let boot_option = BootOption::Exec;
 
     let catalogue = Catalogue::new(
-        disc_title,
+        manifest.disc_title.unwrap_or_else(|| "".parse().unwrap()),
         cycle_number,
         file_offset,
         boot_option,

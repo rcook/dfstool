@@ -61,6 +61,7 @@ pub fn do_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -
         &Manifest {
             version: Some(MANIFEST_VERSION),
             disc_title: Some(disc_title),
+            disc_size: Manifest::default_disc_size(),
             files,
         },
     )?;

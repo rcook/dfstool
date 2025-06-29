@@ -2,6 +2,8 @@ use crate::catalogue_bytes::CatalogueBytes;
 use crate::constants::SECTOR_SIZE;
 use crate::u10;
 use anyhow::Result;
+use serde::de::Error as SerdeError;
+use serde::{Deserialize, Deserializer};
 
 u10!(DiscSize);
 
@@ -21,5 +23,15 @@ impl DiscSize {
         let lo = (self.0 & 0xff) as u8;
         bytes[SECTOR_SIZE + 7] = lo;
         bytes[SECTOR_SIZE + 6] |= hi;
+    }
+}
+
+impl<'de> Deserialize<'de> for DiscSize {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = u16::deserialize(deserializer)?;
+        value.try_into().map_err(SerdeError::custom)
     }
 }

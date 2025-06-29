@@ -81,6 +81,7 @@ pub fn do_extract(
         &Manifest {
             version: Some(MANIFEST_VERSION),
             disc_title: Some(catalogue.disc_title),
+            disc_size: catalogue.disc_size,
             files,
         },
     )?;
