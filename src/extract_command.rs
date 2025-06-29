@@ -1,6 +1,6 @@
 use crate::bbc_basic::{detokenize_source, is_bbc_basic_file};
 use crate::catalogue::Catalogue;
-use crate::constants::{LOSSLESS_BBC_BASIC_EXT, LOSSY_BBC_BASIC_EXT};
+use crate::constants::{LOSSLESS_BBC_BASIC_EXT, LOSSY_BBC_BASIC_EXT, MANIFEST_VERSION};
 use crate::file_type::FileType;
 use crate::manifest::Manifest;
 use crate::util::open_for_write;
@@ -77,6 +77,7 @@ pub fn do_extract(
     serde_json::to_writer_pretty(
         manifest_file,
         &Manifest {
+            version: MANIFEST_VERSION,
             files: manifest_files,
         },
     )?;

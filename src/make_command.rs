@@ -1,7 +1,7 @@
 use crate::boot_option::BootOption;
 use crate::catalogue::Catalogue;
 use crate::catalogue_entry::CatalogueEntry;
-use crate::constants::{SECTOR_SIZE, START_SECTOR};
+use crate::constants::{MANIFEST_VERSION, SECTOR_SIZE, START_SECTOR};
 use crate::cycle_number::CycleNumber;
 use crate::disc_size::DiscSize;
 use crate::file_count::FileCount;
@@ -24,6 +24,13 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
 
     let manifest_file = File::open(manifest_path)?;
     let mut manifest = serde_json::from_reader::<_, Manifest>(manifest_file)?;
+    if manifest.version != MANIFEST_VERSION {
+        bail!(
+            "unsupported manifest version {version}",
+            version = manifest.version
+        );
+    }
+
     manifest.files.sort_by(|a, b| {
         match a.directory.partial_cmp(&b.directory) {
             Some(ordering) if ordering != Ordering::Equal => return ordering,
