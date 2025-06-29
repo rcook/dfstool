@@ -50,23 +50,20 @@ impl CatalogueEntry {
 
         let offset2 = SECTOR_SIZE + offset;
 
-        let extra_bits = bytes[offset2 + 6];
+        let (load_address_top, execution_address_top, length_top, start_sector_top) =
+            Self::extract_extra_bits(bytes[offset2 + 6]);
 
-        let load_address = (u32::from(bytes[offset2])
-            + (u32::from(bytes[offset2 + 1]) << 8)
-            + (u32::from((extra_bits & 0b0000_1100) >> 2) << 16))
-            .try_into()?;
+        let load_address =
+            (u32::from(bytes[offset2]) + (u32::from(bytes[offset2 + 1]) << 8) + load_address_top)
+                .try_into()?;
         let execution_address = (u32::from(bytes[offset2 + 2])
             + (u32::from(bytes[offset2 + 3]) << 8)
-            + (u32::from((extra_bits & 0b1100_0000) >> 6) << 16))
+            + execution_address_top)
             .try_into()?;
-        let length = (u32::from(bytes[offset2 + 4])
-            + (u32::from(bytes[offset2 + 5]) << 8)
-            + (u32::from((extra_bits & 0b0011_0000) >> 4) << 16))
-            .try_into()?;
-        let start_sector = (u16::from(bytes[offset2 + 7])
-            + (u16::from(extra_bits & 0b0000_0011) << 8))
-            .try_into()?;
+        let length =
+            (u32::from(bytes[offset2 + 4]) + (u32::from(bytes[offset2 + 5]) << 8) + length_top)
+                .try_into()?;
+        let start_sector = (u16::from(bytes[offset2 + 7]) + start_sector_top).try_into()?;
 
         Ok(Self::new(
             FileDescriptor::new(
@@ -109,6 +106,21 @@ impl CatalogueEntry {
         Ok(())
     }
 
+    fn extract_extra_bits(value: u8) -> (u32, u32, u32, u16) {
+        let load_address_top = u32::from((value & 0b0000_1100) >> 2) << 16;
+        let execution_address_top = u32::from((value & 0b1100_0000) >> 6) << 16;
+        let length_top = u32::from((value & 0b0011_0000) >> 4) << 16;
+        let start_sector_top = u16::from(value & 0b0000_0011) << 8;
+        (
+            load_address_top,
+            execution_address_top,
+            length_top,
+            start_sector_top,
+        )
+    }
+
+    // Calculate the value of Byte 7 of the catalogue entry on Sector 2 of disc
+    // https://beebwiki.mdfs.net/Acorn_DFS_disc_format
     fn make_extra_bits(
         load_address: u32,
         execution_address: u32,
@@ -116,10 +128,55 @@ impl CatalogueEntry {
         start_sector: u16,
     ) -> Result<u8> {
         Ok(u8::try_from(
-            (load_address >> 16)
-                << (2 + (execution_address >> 16))
-                << (6 + (length >> 16))
-                << (4 + (start_sector >> 8)),
+            ((load_address >> 16) << 2)
+                + ((execution_address >> 16) << 6)
+                + ((length >> 16) << 4)
+                + (u32::from(start_sector) >> 8),
         )?)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::catalogue_entry::CatalogueEntry;
+    use anyhow::Result;
+    use rstest::rstest;
+
+    #[rstest]
+    #[case(0x03_0000, 0x03_0000, 0x00_0000, 0x0000, 0b1100_1100)]
+    #[case(0x01_0000, 0x02_0000, 0x03_0000, 0x0200, 0b1011_0110)]
+    fn extract_extra_bits(
+        #[case] expected_load_address_top: u32,
+        #[case] expected_execution_address_top: u32,
+        #[case] expected_length_top: u32,
+        #[case] expected_start_sector_top: u16,
+        #[case] extra_bits: u8,
+    ) {
+        assert_eq!(
+            (
+                expected_load_address_top,
+                expected_execution_address_top,
+                expected_length_top,
+                expected_start_sector_top
+            ),
+            CatalogueEntry::extract_extra_bits(extra_bits)
+        );
+    }
+
+    #[rstest]
+    #[case(0b1100_1100, 0x03_ffff, 0x03_ffff, 0x00_000e, 0x0002)]
+    #[case(0b1011_0110, 0x01_0000, 0x02_0000, 0x03_0000, 0x0200)]
+    fn make_extra_bits(
+        #[case] expected_extra_bits: u8,
+        #[case] load_address: u32,
+        #[case] execution_address: u32,
+        #[case] length: u32,
+        #[case] start_sector: u16,
+    ) -> Result<()> {
+        assert_eq!(
+            expected_extra_bits,
+            CatalogueEntry::make_extra_bits(load_address, execution_address, length, start_sector)?
+        );
+        Ok(())
     }
 }
