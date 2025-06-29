@@ -1,13 +1,19 @@
 use crate::catalogue_bytes::CatalogueBytes;
 use crate::constants::SECTOR_SIZE;
 use anyhow::{Result, bail};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
 #[repr(u8)]
 pub enum BootOption {
+    #[default]
+    #[serde(rename = "none")]
     None = 0,
+    #[serde(rename = "load")]
     Load = 1,
+    #[serde(rename = "run")]
     Run = 2,
+    #[serde(rename = "exec")]
     Exec = 3,
 }
 

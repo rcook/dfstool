@@ -26,6 +26,12 @@ impl DiscSize {
     }
 }
 
+impl Default for DiscSize {
+    fn default() -> Self {
+        800.try_into().unwrap()
+    }
+}
+
 impl<'de> Deserialize<'de> for DiscSize {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where

@@ -1,7 +1,9 @@
 use crate::bbc_basic::is_bbc_basic_file;
+use crate::boot_option::BootOption;
 use crate::constants::MANIFEST_VERSION;
 use crate::directory::Directory;
 use crate::disc_side::DISC_SIDE_0;
+use crate::disc_size::DiscSize;
 use crate::file_type::{FileType, KnownFileType};
 use crate::manifest::Manifest;
 use crate::manifest_file::ManifestFile;
@@ -61,7 +63,8 @@ pub fn do_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -
         &Manifest {
             version: Some(MANIFEST_VERSION),
             disc_title: Some(disc_title),
-            disc_size: Manifest::default_disc_size(),
+            disc_size: DiscSize::default(),
+            boot_option: BootOption::default(),
             files,
         },
     )?;
