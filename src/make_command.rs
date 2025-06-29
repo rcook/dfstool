@@ -76,7 +76,7 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
 
     let disc_title = "DISC".parse()?;
     let cycle_number = CycleNumber::new(95)?;
-    let file_count: FileCount = entries.len().try_into()?;
+    let file_count: FileCount = u8::try_from(entries.len())?.try_into()?;
     let file_offset = file_count.into();
     let boot_option = BootOption::Exec;
 

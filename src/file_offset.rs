@@ -38,6 +38,6 @@ impl FileOffset {
 
 impl From<FileCount> for FileOffset {
     fn from(value: FileCount) -> Self {
-        Self(value.as_u8() << 3)
+        Self(u8::from(value) << 3)
     }
 }
