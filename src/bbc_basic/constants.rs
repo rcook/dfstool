@@ -12,7 +12,7 @@ pub const LINE_NUMBER_TOKEN: u8 = 0x8d;
 // Note: this lists all BBC BASIC V tokens even though we only
 // care about BBC BASIC II!
 pub const KEYWORD_TOKENS: [(&str, u8); 128] = [
-    ("OTHERWISE", 0x7f),
+    ("OTHERWISE", 0x7f), // Not BASIC II
     ("AND", 0x80),
     ("DIV", 0x81),
     ("EOR", 0x82),
@@ -26,7 +26,7 @@ pub const KEYWORD_TOKENS: [(&str, u8); 128] = [
     ("TAB(", 0x8a),
     ("ELSE", 0x8b),
     ("THEN", 0x8c),
-    ("<line>", LINE_NUMBER_TOKEN),
+    ("<line>", LINE_NUMBER_TOKEN), // Not really a keyword
     ("OPENIN", 0x8e),
     ("PTR", 0x8f),
     ("PAGE", 0x90),
@@ -83,15 +83,15 @@ pub const KEYWORD_TOKENS: [(&str, u8); 128] = [
     ("STR$", 0xc3),
     ("STRING$(", 0xc4),
     ("EOF", 0xc5),
-    ("<ESCFN>", 0xc6),
-    ("<ESCCOM>", 0xc7),
-    ("<ESCSTMT>", 0xc8),
-    ("WHEN", 0xc9),
-    ("OF", 0xca),
-    ("ENDCASE", 0xcb),
-    //("ELSE", 0xcc),
-    ("ENDIF", 0xcd),
-    ("ENDWHILE", 0xce),
+    ("<ESCFN>", 0xc6),   // Not BASIC II
+    ("<ESCCOM>", 0xc7),  // Not BASIC II
+    ("<ESCSTMT>", 0xc8), // Not BASIC II
+    ("WHEN", 0xc9),      // Not BASIC II
+    ("OF", 0xca),        // Not BASIC II
+    ("ENDCASE", 0xcb),   // Not BASIC II
+    //("ELSE", 0xcc), // Not BASIC II
+    ("ENDIF", 0xcd),    // Not BASIC II
+    ("ENDWHILE", 0xce), // Not BASIC II
     ("PTR", 0xcf),
     ("PAGE", 0xd0),
     ("TIME", 0xd1),
