@@ -7,12 +7,14 @@ use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::result::Result as StdResult;
 
+const ROOT_DIR: char = '$';
+
 #[derive(Clone, Copy, Debug, PartialEq, Serialize)]
 pub struct Directory(char);
 
 impl Directory {
     pub const fn is_root(self) -> bool {
-        self.0 == '$'
+        self.0 == ROOT_DIR
     }
 
     pub const fn as_char(self) -> char {
@@ -24,8 +26,8 @@ impl PartialOrd for Directory {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self.0, other.0) {
             (a, b) if a == b => Some(Ordering::Equal),
-            ('$', _) => Some(Ordering::Less),
-            (_, '$') => Some(Ordering::Greater),
+            (ROOT_DIR, _) => Some(Ordering::Less),
+            (_, ROOT_DIR) => Some(Ordering::Greater),
             (a, b) => Some(a.cmp(&b)),
         }
     }
