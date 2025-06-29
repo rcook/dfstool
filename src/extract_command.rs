@@ -78,7 +78,7 @@ pub fn do_extract(
     serde_json::to_writer_pretty(
         manifest_file,
         &Manifest {
-            version: MANIFEST_VERSION,
+            version: Some(MANIFEST_VERSION),
             files: manifest_files,
         },
     )?;

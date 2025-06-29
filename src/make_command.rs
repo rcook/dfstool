@@ -24,11 +24,10 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
 
     let manifest_file = File::open(manifest_path)?;
     let mut manifest = serde_json::from_reader::<_, Manifest>(manifest_file)?;
-    if manifest.version != MANIFEST_VERSION {
-        bail!(
-            "unsupported manifest version {version}",
-            version = manifest.version
-        );
+    if let Some(version) = manifest.version
+        && version != MANIFEST_VERSION
+    {
+        bail!("unsupported manifest version {version}");
     }
 
     manifest.files.sort_by(|a, b| {
