@@ -1,7 +1,7 @@
 use crate::bbc_basic::{detokenize_source, is_bbc_basic_file};
 use crate::catalogue::Catalogue;
 use crate::constants::{LOSSLESS_BBC_BASIC_EXT, LOSSY_BBC_BASIC_EXT, MANIFEST_VERSION};
-use crate::file_type::FileType;
+use crate::file_type::{FileType, KnownFileType};
 use crate::manifest::Manifest;
 use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
@@ -59,19 +59,18 @@ pub fn do_extract(
             let mut content_file = open_for_write(&content_path, overwrite)?;
             content_file.write_all(&bytes)?;
 
-            let file_type = if is_bbc_basic_file(&content_path)? {
-                FileType::TokenizedBasic
-            } else {
-                FileType::Unknown
-            };
-
-            if detokenize && matches!(file_type, FileType::TokenizedBasic) {
+            let is_bbc_basic = is_bbc_basic_file(&content_path)?;
+            if detokenize && is_bbc_basic {
                 // Attempt to detokenize the file just in case it contains BASIC
                 // Don't fail if it can't be detokenized
                 _ = detokenize_file(&content_path, overwrite, lossless);
             }
 
-            Ok(d.to_manifest_file(file_type))
+            Ok(d.to_manifest_file(FileType::Known(if is_bbc_basic {
+                KnownFileType::BbcBasic
+            } else {
+                KnownFileType::Other
+            })))
         })
         .collect::<Result<Vec<_>>>()?;
 
