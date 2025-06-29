@@ -8,6 +8,7 @@ use std::io::Write;
 
 pub fn tokenize_source<W: Write>(mut writer: W, bytes: &[u8]) -> Result<()> {
     for line in LineEnding::guess(bytes).lines(bytes) {
+        let line = line?;
         tokenize_line(&mut writer, line)?;
     }
     writer.write_all(&END_MARKER)?;

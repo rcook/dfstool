@@ -1,3 +1,5 @@
+use anyhow::{Result, anyhow};
+
 pub const CR: u8 = 0x0d; // 13
 
 pub const LF: u8 = 0x0a; // 10
@@ -61,7 +63,7 @@ impl<'a> Lines<'a> {
 }
 
 impl<'a> Iterator for Lines<'a> {
-    type Item = &'a [u8];
+    type Item = Result<&'a [u8]>;
 
     fn next(&mut self) -> Option<Self::Item> {
         use crate::line_ending::LineEnding::{Cr, CrLf, Lf, LfCr};
@@ -73,18 +75,15 @@ impl<'a> Iterator for Lines<'a> {
 
             let byte = self.bytes[self.ptr];
             let line = match (&self.line_ending, self.previous_byte, byte) {
-                (Cr, _, CR) | (Lf, _, LF) => {
-                    let line = &self.bytes[self.line_start..self.ptr];
-                    self.line_start = self.ptr + 1;
-                    Some(line)
-                }
+                (Cr, _, CR) | (Lf, _, LF) => Some(&self.bytes[self.line_start..self.ptr]),
                 (CrLf, Some(CR), LF) | (LfCr, Some(LF), CR) => {
-                    let line = &self.bytes[self.line_start..self.ptr - 1];
-                    self.line_start = self.ptr + 1;
-                    Some(line)
+                    Some(&self.bytes[self.line_start..self.ptr - 1])
                 }
                 (CrLf, _, LF) | (LfCr, _, CR) => {
-                    panic!("invalid line ending at position {ptr}", ptr = self.ptr)
+                    return Some(Err(anyhow!(
+                        "invalid line ending at position {ptr}",
+                        ptr = self.ptr
+                    )));
                 }
                 _ => None,
             };
@@ -93,7 +92,8 @@ impl<'a> Iterator for Lines<'a> {
             self.ptr += 1;
 
             if line.is_some() {
-                return line;
+                self.line_start = self.ptr;
+                return Ok(line).transpose();
             }
         }
 
