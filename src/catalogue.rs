@@ -14,11 +14,11 @@ use std::path::Path;
 // https://beebwiki.mdfs.net/Acorn_DFS_disc_format
 #[derive(Debug)]
 pub struct Catalogue {
-    disc_title: DiscTitle,
-    cycle_number: CycleNumber,
-    file_offset: FileOffset,
-    boot_option: BootOption,
-    disc_size: DiscSize,
+    pub disc_title: DiscTitle,
+    pub cycle_number: CycleNumber,
+    pub file_offset: FileOffset,
+    pub boot_option: BootOption,
+    pub disc_size: DiscSize,
     pub entries: Vec<CatalogueEntry>,
 }
 
@@ -76,29 +76,5 @@ impl Catalogue {
         self.disc_size.write_to_catalogue(bytes);
         CatalogueEntry::write_to_catalogue(bytes, &self.entries)?;
         Ok(())
-    }
-
-    pub fn show(&self) {
-        println!("Title: \"{}\"", self.disc_title);
-        println!("Cycle number: {}", self.cycle_number);
-        println!("File number: {}", self.file_offset.number());
-        println!("Boot: {:?}", self.boot_option);
-        println!("Sectors: {:?}", u16::from(self.disc_size));
-        println!("Files:");
-        for entry in &self.entries {
-            let d = &entry.descriptor;
-
-            let extra = String::from(if d.locked { " (locked)" } else { "" });
-            println!(
-                "  {directory}.{file_name:<10} {load_address:06X} {execution_address:06X} {length:06X} {start_sector}{extra}",
-                directory = d.directory,
-                file_name = d.file_name.to_string(),
-                load_address = d.load_address,
-                execution_address = d.execution_address,
-                length = entry.length,
-                start_sector = entry.start_sector,
-                extra = extra
-            );
-        }
     }
 }
