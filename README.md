@@ -13,6 +13,20 @@ Acorn DFS .ssd File Manager
 | `tokenize`   | Tokenize BBC BASIC program                                |
 | `help`       | Print this message or the help of the given subcommand(s) |
 
+## Examples
+
+Extract contents of a disc image `elite.ssd` into a directory name `elite`:
+
+```bash
+dfstool extract elite.ssd elite
+```
+
+Make a disc image named `elite-new.ssd` from the manifest file `elite/elite.ssd.json`:
+
+```bash
+dfstool make elite/elite.ssd.json elite-new.ssd
+```
+
 ## Notes
 
 `extract` does not preserve data in sectors that are not referenced by files
