@@ -3,6 +3,11 @@ use path_absolutize::Absolutize;
 use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
+#[command(
+    name = "dfstool",
+    about = "Acorn DFS .ssd File Manager",
+    after_help = "Documentation: https://github.com/rcook/dfstool/blob/main/README.md"
+)]
 pub struct Args {
     #[command(subcommand)]
     pub command: Command,
