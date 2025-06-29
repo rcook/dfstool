@@ -53,3 +53,27 @@ impl Display for CycleNumber {
         write!(f, "{value}", value = self.0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use anyhow::Result;
+    use rstest::rstest;
+
+    use crate::cycle_number::CycleNumber;
+
+    #[rstest]
+    #[case(99, 0x99)]
+    #[case(10, 0x10)]
+    #[case(0, 0x00)]
+    fn bcd_basics(#[case] expected_result: u8, #[case] input: u8) -> Result<()> {
+        assert_eq!(expected_result, CycleNumber::from_bcd(input)?);
+        assert_eq!(input, CycleNumber::to_bcd(expected_result)?);
+        Ok(())
+    }
+
+    #[test]
+    fn bcd_errors() {
+        assert!(CycleNumber::from_bcd(0x0a).is_err());
+        assert!(CycleNumber::to_bcd(101).is_err());
+    }
+}
