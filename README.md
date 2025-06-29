@@ -60,6 +60,43 @@ can be used to retain the content of obfuscated BBC BASIC programs but must
 be carefully edited (most likely as binary files) to retain the control
 codes.
 
+## The manifest
+
+The manifest is a JSON file that describes the contents of an .ssd file in
+terms of files on the current file system. Each file is described by a blob
+of JSON that looks like the following:
+
+```json
+{
+    "fileName": "!BOOT",
+    "directory": "$",
+    "discSide": 0,
+    "locked": false,
+    "loadAddress": "&000000",
+    "executionAddress": "&000000",
+    "contentPath": "!BOOT",
+    "type": "other"
+},
+```
+
+The fields are as follows:
+
+* `fileName`: the DFS file name
+* `directory`: the DFS directory
+* `discSide`: the DFS disc side
+* `locked`: the DFS "locked" attribute (`*ACCESS` etc.)
+* `loadAddress`: the 18-bit DFS load address of the file
+* `executionAddress`: the 18-bit DFS execution address of the file
+* `contentPath`: the path to the file on the local file system relative
+to the manifest---this must be a valid _local_ absolute or relative path
+and is, therefore, not subject to DFS restrictions
+* `type`: the file's type: this field is not used for anything when
+making a new .ssd file but might be useful for something; this value is
+inferred from the content of the file itself
+
+The "DFS" attributes are those that were read from, or will be written to,
+the .ssd file's DFS catalogue.
+
 ## TBD
 
 * Support .dsd files
