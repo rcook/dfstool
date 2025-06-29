@@ -44,9 +44,9 @@ pub fn do_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -
 
         let file_type = entry.file_type()?;
         if file_type.is_file()
-            && let Some(manifest_file) = make_manifest_file(manifest_dir, &entry.path())?
+            && let Some(file) = make_file(manifest_dir, &entry.path())?
         {
-            files.push(manifest_file);
+            files.push(file);
         }
     }
 
@@ -62,7 +62,7 @@ pub fn do_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -
     Ok(())
 }
 
-fn make_manifest_file(manifest_dir: &Path, path: &Path) -> Result<Option<ManifestFile>> {
+fn make_file(manifest_dir: &Path, path: &Path) -> Result<Option<ManifestFile>> {
     let content_path =
         diff_paths(path, manifest_dir).ok_or_else(|| anyhow!("cannot build content path"))?;
 
