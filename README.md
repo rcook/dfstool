@@ -4,14 +4,15 @@ Acorn DFS .ssd File Manager
 
 ## Commands
 
-| Command      | Description                                               |
-| ------------ | --------------------------------------------------------- |
-| `detokenize` | Detokenize BBC BASIC program                              |
-| `extract`    | Extract files and metadata from .ssd file                 |
-| `make`       | Make .ssd file from files and metadata                    |
-| `show`       | Show catalogue                                            |
-| `tokenize`   | Tokenize BBC BASIC program                                |
-| `help`       | Print this message or the help of the given subcommand(s) |
+| Command      | Description                                                   |
+| ------------ | ------------------------------------------------------------- |
+| `detokenize` | Detokenize BBC BASIC program                                  |
+| `extract`    | Extract files and metadata from .ssd file                     |
+| `make`       | Make .ssd file from files and metadata                        |
+| `manifest`   | Generate a manifest file for the content in a given directory |
+| `show`       | Show catalogue                                                |
+| `tokenize`   | Tokenize BBC BASIC program                                    |
+| `help`       | Print this message or the help of the given subcommand(s)     |
 
 ## Examples
 
