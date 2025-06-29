@@ -89,10 +89,10 @@ impl CatalogueEntry {
 
         let offset2 = offset + SECTOR_SIZE;
 
-        let load_address = self.descriptor.load_address.as_u32();
-        let execution_address = self.descriptor.execution_address.as_u32();
-        let length = self.length.as_u32();
-        let start_sector = self.start_sector.as_u16();
+        let load_address = u32::from(self.descriptor.load_address);
+        let execution_address = u32::from(self.descriptor.execution_address);
+        let length = u32::from(self.length);
+        let start_sector = u16::from(self.start_sector);
 
         bytes[offset2] = u8::try_from(load_address & 0xff)?;
         bytes[offset2 + 1] = u8::try_from((load_address >> 8) & 0xff)?;

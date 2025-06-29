@@ -5,8 +5,8 @@ macro_rules! u10 {
         pub struct $name(u16);
 
         impl $name {
-            #[allow(unused)]
-            pub const fn as_u16(&self) -> u16 {
+            // https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv
+            pub const fn to_u16(self) -> u16 {
                 self.0
             }
         }
@@ -25,6 +25,12 @@ macro_rules! u10 {
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(f, "{value:03X}", value = self.0)
+            }
+        }
+
+        impl std::convert::From<$name> for u16 {
+            fn from(value: $name) -> Self {
+                value.to_u16()
             }
         }
     };

@@ -83,7 +83,7 @@ impl Catalogue {
         println!("Cycle number: {}", self.cycle_number);
         println!("File number: {}", self.file_offset.number());
         println!("Boot: {:?}", self.boot_option);
-        println!("Sectors: {:?}", self.disc_size.as_u16());
+        println!("Sectors: {:?}", u16::from(self.disc_size));
         println!("Files:");
         for entry in &self.entries {
             let d = &entry.descriptor;

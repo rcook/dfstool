@@ -44,7 +44,7 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
     });
 
     let disc_size: DiscSize = 800.try_into()?;
-    let mut bytes = vec![0u8; disc_size.as_u16() as usize * SECTOR_SIZE];
+    let mut bytes = vec![0u8; u16::from(disc_size) as usize * SECTOR_SIZE];
 
     let mut start_sector = START_SECTOR;
     let mut entries = Vec::new();
@@ -71,7 +71,7 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
         start_sector += sector_count;
     }
 
-    if start_sector > disc_size.as_u16() as usize {
+    if start_sector > u16::from(disc_size) as usize {
         bail!("exceeded capacity of disc")
     }
 

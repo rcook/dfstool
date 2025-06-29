@@ -49,9 +49,9 @@ pub fn do_extract(
         .map(|entry| {
             let d = &entry.descriptor;
 
-            let mut bytes = vec![0; entry.length.as_u32() as usize];
+            let mut bytes = vec![0; u32::from(entry.length) as usize];
             input_file.seek(SeekFrom::Start(
-                u64::from(entry.start_sector.as_u16()) * 256,
+                u64::from(u16::from(entry.start_sector)) * 256,
             ))?;
             input_file.read_exact(&mut bytes)?;
 

@@ -5,8 +5,8 @@ macro_rules! u18 {
         pub struct $name(u32);
 
         impl $name {
-            #[allow(unused)]
-            pub const fn as_u32(&self) -> u32 {
+            // https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv
+            pub const fn to_u32(self) -> u32 {
                 self.0
             }
         }
@@ -51,6 +51,12 @@ macro_rules! u18 {
                 };
                 let value = temp.try_into().map_err(serde::de::Error::custom)?;
                 Ok(value)
+            }
+        }
+
+        impl std::convert::From<$name> for u32 {
+            fn from(value: $name) -> Self {
+                value.to_u32()
             }
         }
     };
