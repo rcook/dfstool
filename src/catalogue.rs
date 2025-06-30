@@ -6,7 +6,7 @@ use crate::cycle_number::CycleNumber;
 use crate::disc_size::DiscSize;
 use crate::disc_title::DiscTitle;
 use crate::file_offset::FileOffset;
-use anyhow::Result;
+use anyhow::{Result, bail};
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
@@ -30,6 +30,11 @@ impl Catalogue {
     pub fn from_reader<R: Read>(mut reader: R) -> Result<Catalogue> {
         let mut bytes = [0; SECTOR_SIZE * 2];
         reader.read_exact(&mut bytes)?;
+
+        if !Self::is_valid_catalogue(&bytes) {
+            bail!("input file does not contain a valid .ssd file")
+        }
+
         Self::from_catalogue_bytes(&bytes)
     }
 
@@ -77,5 +82,31 @@ impl Catalogue {
         self.disc_size.write_to_catalogue(bytes);
         CatalogueEntry::write_to_catalogue(bytes, &self.entries)?;
         Ok(())
+    }
+
+    // https://www.geraldholdsworth.co.uk/documents/DiscImage.pdf
+    fn is_valid_catalogue(bytes: &[u8; SECTOR_SIZE * 2]) -> bool {
+        if !bytes[0x0000..0x0009]
+            .iter()
+            .all(|&b| (b & 0x80) == 0 && b > 31 || b == 0)
+        {
+            return false;
+        }
+
+        if !bytes[0x0100..0x0104]
+            .iter()
+            .all(|&b| (b & 0x80) == 0 && b > 31 || b == 0)
+        {
+            return false;
+        }
+
+        if (bytes[0x0105] & 0b0000_0111) != 0 {
+            return false;
+        }
+        if (bytes[0x0106] & 0b1100_1100) != 0 {
+            return false;
+        }
+
+        true
     }
 }
