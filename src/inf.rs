@@ -43,10 +43,6 @@ pub fn make_inf_file(inf_path: &Path, entry: &CatalogueEntry, overwrite: bool) -
 
     writer.write_line_end()?;
 
-    drop(writer);
-
-    println!("{:?}", read_inf_file(inf_path)?);
-
     Ok(())
 }
 
