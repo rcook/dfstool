@@ -7,8 +7,10 @@ use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
 use std::ffi::OsStr;
 use std::fs::{File, create_dir_all};
-use std::io::{ErrorKind, Read, Seek, SeekFrom, Write};
+use std::io::{ErrorKind, Read, Seek, SeekFrom, Write, copy};
 use std::path::Path;
+use tempfile::tempfile;
+use zip::ZipArchive;
 
 pub fn do_extract(
     input_path: &Path,
@@ -17,7 +19,24 @@ pub fn do_extract(
     detokenize: bool,
     lossless: bool,
 ) -> Result<()> {
-    let mut input_file = match File::open(input_path) {
+    if input_path.extension().and_then(OsStr::to_str) == Some("zip") {
+        extract_from_zip(input_path, output_dir, overwrite, detokenize, lossless)?;
+    } else {
+        extract_from_ssd(input_path, output_dir, overwrite, detokenize, lossless)?;
+    }
+    Ok(())
+}
+
+// Zip file must contain exactly one .ssd file. All other files
+// will be ignored.
+fn extract_from_zip(
+    input_path: &Path,
+    output_dir: &Path,
+    overwrite: bool,
+    detokenize: bool,
+    lossless: bool,
+) -> Result<()> {
+    let mut zip_file = match File::open(input_path) {
         Ok(f) => f,
         Err(e) if e.kind() == ErrorKind::NotFound => bail!(
             "input file {input_path} not found",
@@ -25,11 +44,75 @@ pub fn do_extract(
         ),
         Err(e) => bail!(e),
     };
-    let catalogue = Catalogue::from_reader(&mut input_file)?;
 
+    let mut archive = ZipArchive::new(&mut zip_file)?;
+    let mut ssd_files = Vec::new();
+    for i in 0..archive.len() {
+        let file = archive.by_index(i)?;
+        if file.is_file()
+            && let Some(p) = file.enclosed_name()
+            && p.extension().and_then(OsStr::to_str) == Some("ssd")
+        {
+            ssd_files.push((i, p));
+        }
+    }
+
+    let ssd_file_info = match ssd_files.len() {
+        0 => bail!(
+            "no .ssd files found in archive {input_path}",
+            input_path = input_path.display()
+        ),
+        1 => ssd_files.first().unwrap(),
+        _ => bail!(
+            "more than one .ssd file was found in archive {input_path}",
+            input_path = input_path.display()
+        ),
+    };
+
+    let mut archive_file = archive.by_index(ssd_file_info.0)?;
+    let mut input_file = tempfile()?;
+    copy(&mut archive_file, &mut input_file)?;
+    input_file.rewind()?;
+
+    extract_files(
+        input_path, output_dir, overwrite, detokenize, lossless, input_file,
+    )
+}
+
+fn extract_from_ssd(
+    input_path: &Path,
+    output_dir: &Path,
+    overwrite: bool,
+    detokenize: bool,
+    lossless: bool,
+) -> Result<()> {
+    let input_file = match File::open(input_path) {
+        Ok(f) => f,
+        Err(e) if e.kind() == ErrorKind::NotFound => bail!(
+            "input file {input_path} not found",
+            input_path = input_path.display()
+        ),
+        Err(e) => bail!(e),
+    };
+
+    extract_files(
+        input_path, output_dir, overwrite, detokenize, lossless, input_file,
+    )
+}
+
+fn extract_files<R: Read + Seek>(
+    input_path: &Path,
+    output_dir: &Path,
+    overwrite: bool,
+    detokenize: bool,
+    lossless: bool,
+    mut input_file: R,
+) -> Result<()> {
     if !output_dir.exists() {
         create_dir_all(output_dir)?;
     }
+
+    let catalogue = Catalogue::from_reader(&mut input_file)?;
 
     let mut manifest_file_name = String::new();
     manifest_file_name.push_str(input_path.file_name().and_then(OsStr::to_str).ok_or_else(

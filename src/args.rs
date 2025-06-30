@@ -42,7 +42,7 @@ pub enum Command {
 
     #[command(name = "extract", about = "Extract files and metadata from .ssd file")]
     Extract {
-        #[arg(help = "Input file", required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Input file (.ssd or zipped .ssd)", required = true, value_parser = parse_absolute_path)]
         input_path: PathBuf,
 
         #[arg(help = "Output directory", required = true, value_parser = parse_absolute_path)]
