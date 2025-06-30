@@ -1,5 +1,6 @@
 use crate::directory::Directory;
 use crate::file_name::FileName;
+use crate::file_spec::FileSpec;
 use anyhow::Error;
 use std::str::FromStr;
 
@@ -34,5 +35,15 @@ impl FromStr for DfsPath {
             directory,
             file_name,
         })
+    }
+}
+
+impl FileSpec for DfsPath {
+    fn directory(&self) -> &Directory {
+        &self.directory
+    }
+
+    fn file_name(&self) -> &FileName {
+        &self.file_name
     }
 }

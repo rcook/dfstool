@@ -4,6 +4,7 @@ use crate::constants::{INF_EXT, MANIFEST_VERSION};
 use crate::cycle_number::CycleNumber;
 use crate::dfs_path::DfsPath;
 use crate::disc_size::DiscSize;
+use crate::file_spec::FileSpec;
 use crate::file_type::{FileType, KnownFileType};
 use crate::manifest::Manifest;
 use crate::manifest_file::ManifestFile;
@@ -55,9 +56,26 @@ pub fn do_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -
         if has_extension(&p, INF_EXT) {
             let content_path = strip_extension(&p)?;
             if content_path.is_file() {
-                let rel_path = diff_paths(p, manifest_dir)
-                    .ok_or_else(|| anyhow!("cannot build content path"))?;
-                inf_files.push(rel_path);
+                let file_name = content_path
+                    .file_name()
+                    .and_then(OsStr::to_str)
+                    .ok_or_else(|| {
+                        anyhow!(
+                            "could not get file name from path {path}",
+                            path = p.display()
+                        )
+                    })?;
+
+                if let Ok(dfs_path) = file_name.parse::<DfsPath>() {
+                    let rel_path = diff_paths(p, manifest_dir)
+                        .ok_or_else(|| anyhow!("cannot build content path"))?;
+                    inf_files.push((dfs_path, rel_path));
+                } else {
+                    eprintln!(
+                        "WARNING: Skipping file {path} since a valid DFS file name cannot be inferred",
+                        path = p.display()
+                    );
+                }
             } else {
                 eprintln!(
                     "WARNING: Skipping {path} since corresponding content file does not exist",
@@ -92,6 +110,9 @@ pub fn do_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -
         Err(_) => "Untitled".parse().unwrap(),
     };
 
+    inf_files.sort_by(|a, b| FileSpec::compare(&a.0, &b.0));
+    files.sort_by(FileSpec::compare);
+
     let manifest = open_for_write(output_path, overwrite)?;
     serde_json::to_writer_pretty(
         manifest,
@@ -101,7 +122,7 @@ pub fn do_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -
             disc_size: DiscSize::default(),
             boot_option: BootOption::default(),
             cycle_number: CycleNumber::default(),
-            inf_files,
+            inf_files: inf_files.into_iter().map(|x| x.1).collect(),
             files,
         },
     )?;
