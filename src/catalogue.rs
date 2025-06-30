@@ -3,7 +3,6 @@ use crate::catalogue_bytes::CatalogueBytes;
 use crate::catalogue_entry::CatalogueEntry;
 use crate::constants::SECTOR_SIZE;
 use crate::cycle_number::CycleNumber;
-use crate::disc_side::{DISC_SIDE_0, DiscSide};
 use crate::disc_size::DiscSize;
 use crate::disc_title::DiscTitle;
 use crate::file_offset::FileOffset;
@@ -24,28 +23,24 @@ pub struct Catalogue {
 }
 
 impl Catalogue {
-    pub fn from_file(ssd_path: &Path, disc_side: DiscSide) -> Result<Catalogue> {
-        if disc_side != *DISC_SIDE_0 {
-            todo!(".dsd support not implemented yet")
-        }
-
-        Self::from_reader(File::open(ssd_path)?, disc_side)
+    pub fn from_file(ssd_path: &Path) -> Result<Catalogue> {
+        Self::from_reader(File::open(ssd_path)?)
     }
 
-    pub fn from_reader<R: Read>(mut reader: R, disc_side: DiscSide) -> Result<Catalogue> {
+    pub fn from_reader<R: Read>(mut reader: R) -> Result<Catalogue> {
         let mut bytes = [0; SECTOR_SIZE * 2];
         reader.read_exact(&mut bytes)?;
-        Self::from_catalogue_bytes(&bytes, disc_side)
+        Self::from_catalogue_bytes(&bytes)
     }
 
     #[allow(clippy::similar_names)]
-    pub fn from_catalogue_bytes(bytes: &CatalogueBytes, disc_side: DiscSide) -> Result<Self> {
+    pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
         let disc_title = DiscTitle::from_catalogue_bytes(bytes)?;
         let cycle_number = CycleNumber::from_catalogue_bytes(bytes)?;
         let file_offset = FileOffset::from_catalogue_bytes(bytes)?;
         let boot_option = BootOption::from_catalogue_bytes(bytes)?;
         let disc_size = DiscSize::from_catalogue_bytes(bytes)?;
-        let entries = CatalogueEntry::from_catalogue_bytes(bytes, file_offset.number(), disc_side)?;
+        let entries = CatalogueEntry::from_catalogue_bytes(bytes, file_offset.number())?;
         Ok(Self::new(
             disc_title,
             cycle_number,

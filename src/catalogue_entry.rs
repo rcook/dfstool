@@ -1,6 +1,5 @@
 use crate::catalogue_bytes::CatalogueBytes;
 use crate::constants::SECTOR_SIZE;
-use crate::disc_side::DiscSide;
 use crate::file_descriptor::FileDescriptor;
 use crate::length::Length;
 use crate::start_sector::StartSector;
@@ -14,13 +13,9 @@ pub struct CatalogueEntry {
 }
 
 impl CatalogueEntry {
-    pub fn from_catalogue_bytes(
-        bytes: &CatalogueBytes,
-        number: u8,
-        disc_side: DiscSide,
-    ) -> Result<Vec<Self>> {
+    pub fn from_catalogue_bytes(bytes: &CatalogueBytes, number: u8) -> Result<Vec<Self>> {
         (0..number)
-            .map(|i| Self::from_catalogue_bytes_inner(bytes, i as usize, disc_side))
+            .map(|i| Self::from_catalogue_bytes_inner(bytes, i as usize))
             .collect()
     }
 
@@ -43,11 +38,7 @@ impl CatalogueEntry {
         }
     }
 
-    fn from_catalogue_bytes_inner(
-        bytes: &CatalogueBytes,
-        index: usize,
-        disc_side: DiscSide,
-    ) -> Result<Self> {
+    fn from_catalogue_bytes_inner(bytes: &CatalogueBytes, index: usize) -> Result<Self> {
         let offset = (index + 1) * 8;
         let file_name_bytes = &bytes[offset..offset + 7];
         let file_name_str = str::from_utf8(file_name_bytes)?.trim_end_matches(['\0', ' ']);
@@ -78,7 +69,6 @@ impl CatalogueEntry {
             FileDescriptor::new(
                 file_name,
                 directory,
-                disc_side,
                 locked,
                 load_address,
                 execution_address,

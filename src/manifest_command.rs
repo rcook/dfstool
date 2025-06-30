@@ -2,7 +2,6 @@ use crate::bbc_basic::is_bbc_basic_file;
 use crate::boot_option::BootOption;
 use crate::constants::MANIFEST_VERSION;
 use crate::directory::Directory;
-use crate::disc_side::DISC_SIDE_0;
 use crate::disc_size::DiscSize;
 use crate::file_type::{FileType, KnownFileType};
 use crate::manifest::Manifest;
@@ -115,7 +114,6 @@ fn make_file(manifest_dir: &Path, path: &Path) -> Result<Option<ManifestFile>> {
     Ok(Some(ManifestFile {
         file_name,
         directory,
-        disc_side: *DISC_SIDE_0,
         locked: false,
         load_address: 0.try_into()?,
         execution_address: 0.try_into()?,

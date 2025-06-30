@@ -9,7 +9,6 @@ mod constants;
 mod cycle_number;
 mod detokenize_command;
 mod directory;
-mod disc_side;
 mod disc_size;
 mod disc_title;
 mod extract_command;

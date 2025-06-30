@@ -1,7 +1,6 @@
 use crate::bbc_basic::{detokenize_source, is_bbc_basic_file};
 use crate::catalogue::Catalogue;
 use crate::constants::{LOSSLESS_BBC_BASIC_EXT, LOSSY_BBC_BASIC_EXT, MANIFEST_VERSION};
-use crate::disc_side::DISC_SIDE_0;
 use crate::file_type::{FileType, KnownFileType};
 use crate::manifest::Manifest;
 use crate::util::open_for_write;
@@ -26,7 +25,7 @@ pub fn do_extract(
         ),
         Err(e) => bail!(e),
     };
-    let catalogue = Catalogue::from_reader(&mut input_file, *DISC_SIDE_0)?;
+    let catalogue = Catalogue::from_reader(&mut input_file)?;
 
     if !output_dir.exists() {
         create_dir_all(output_dir)?;

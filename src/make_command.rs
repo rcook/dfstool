@@ -3,7 +3,6 @@ use crate::catalogue::Catalogue;
 use crate::catalogue_entry::CatalogueEntry;
 use crate::constants::{MANIFEST_VERSION, SECTOR_SIZE, START_SECTOR};
 use crate::cycle_number::CycleNumber;
-use crate::disc_side::DISC_SIDE_0;
 use crate::file_count::FileCount;
 use crate::file_spec::FileSpec;
 use crate::length::Length;
@@ -37,10 +36,6 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
     let mut start_sector = START_SECTOR;
     let mut entries = Vec::new();
     for file in manifest.files {
-        if file.disc_side != *DISC_SIDE_0 {
-            todo!(".dsd support not implemented yet")
-        }
-
         let content_path = manifest_dir.join(&file.content_path);
         let m = metadata(&content_path)?;
         let length: Length = <u32 as TryFrom<u64>>::try_from(m.len())?.try_into()?;
