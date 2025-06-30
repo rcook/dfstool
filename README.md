@@ -109,13 +109,6 @@ inferred from the content of the file itself
 The "DFS" attributes are those that were read from, or will be written to,
 the .ssd file's DFS catalogue.
 
-## TBD
-
-* Support .dsd files
-* Add a "roundtripping" mode (see comments in _Notes_) that would retain the
-content of all sectors as well as the original order of catalogue entries
-and start sectors
-
 ## References
 
 * [Acorn DFS Disc Format][acorn-dfs-disc-format]
