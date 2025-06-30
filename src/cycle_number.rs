@@ -1,9 +1,12 @@
 use crate::catalogue_bytes::CatalogueBytes;
 use crate::constants::SECTOR_SIZE;
 use anyhow::{Result, bail};
+use serde::de::Error as SerdeError;
+use serde::{Deserialize, Deserializer, Serialize};
 use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::result::Result as StdResult;
 
-#[derive(Debug)]
+#[derive(Debug, Default, Serialize)]
 pub struct CycleNumber(u8);
 
 impl CycleNumber {
@@ -54,12 +57,29 @@ impl Display for CycleNumber {
     }
 }
 
+impl TryFrom<u8> for CycleNumber {
+    type Error = anyhow::Error;
+
+    fn try_from(value: u8) -> StdResult<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
+impl<'de> Deserialize<'de> for CycleNumber {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = u8::deserialize(deserializer)?;
+        value.try_into().map_err(SerdeError::custom)
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::cycle_number::CycleNumber;
     use anyhow::Result;
     use rstest::rstest;
-
-    use crate::cycle_number::CycleNumber;
 
     #[rstest]
     #[case(99, 0x99)]

@@ -1,6 +1,7 @@
 use crate::bbc_basic::is_bbc_basic_file;
 use crate::boot_option::BootOption;
 use crate::constants::{INF_EXT, MANIFEST_VERSION};
+use crate::cycle_number::CycleNumber;
 use crate::dfs_path::DfsPath;
 use crate::disc_size::DiscSize;
 use crate::file_type::{FileType, KnownFileType};
@@ -99,6 +100,7 @@ pub fn do_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -
             disc_title: Some(disc_title),
             disc_size: DiscSize::default(),
             boot_option: BootOption::default(),
+            cycle_number: CycleNumber::default(),
             inf_files,
             files,
         },

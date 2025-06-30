@@ -1,10 +1,9 @@
-use std::path::PathBuf;
-
-use crate::boot_option::BootOption;
 use crate::disc_size::DiscSize;
 use crate::disc_title::DiscTitle;
 use crate::manifest_file::ManifestFile;
+use crate::{boot_option::BootOption, cycle_number::CycleNumber};
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Manifest {
@@ -23,6 +22,9 @@ pub struct Manifest {
 
     #[serde(rename = "bootOption", alias = "boot_option", default)]
     pub boot_option: BootOption,
+
+    #[serde(rename = "cycleNumber", alias = "cycle_number", default)]
+    pub cycle_number: CycleNumber,
 
     #[serde(
         rename = "infFiles",

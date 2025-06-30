@@ -154,6 +154,7 @@ fn extract_files<R: Read + Seek>(
             disc_title: Some(catalogue.disc_title),
             disc_size: catalogue.disc_size,
             boot_option: catalogue.boot_option,
+            cycle_number: catalogue.cycle_number,
             inf_files,
             files,
         },
