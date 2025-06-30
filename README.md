@@ -23,11 +23,18 @@ detokenize any BBC BASIC programs::
 dfstool extract elite.ssd elite
 ```
 
-Make a disc image named `elite-new.ssd` from the manifest file `elite/elite.ssd.json`
+Make a disc image named `elite-new.ssd` from the manifest file `elite/elite.json`
 and referenced files:
 
 ```bash
-dfstool make elite/elite.ssd.json elite-new.ssd
+dfstool make elite/elite.json elite-new.ssd
+```
+
+Extract files from a disc image stored in zip file `Elite.zip` using .inf
+files to store file metadata and generate a manifest:
+
+```bash
+dfstool extract Elite.zip elite --inf
 ```
 
 ## Notes
@@ -81,13 +88,14 @@ of JSON that looks like the following:
 
 Metadata can also be stored in .inf files. These can be created using
 the `--inf` option passed to the `extract` command. The `make` and
-`manifest` commands will also import .inf files if when provided.
+`manifest` commands will also import .inf files when provided. A manifest
+can define metadata as a mixture of .inf files and information defined in
+the JSON file.
 
 The fields are as follows:
 
 * `fileName`: the DFS file name
 * `directory`: the DFS directory
-* `discSide`: the DFS disc side
 * `locked`: the DFS "locked" attribute (`*ACCESS` etc.)
 * `loadAddress`: the 18-bit DFS load address of the file
 * `executionAddress`: the 18-bit DFS execution address of the file
