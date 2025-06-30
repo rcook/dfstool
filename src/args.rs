@@ -70,6 +70,14 @@ pub enum Command {
             default_value_t = false
         )]
         lossless: bool,
+
+        #[arg(
+            help = "Generate .inf files instead of storing metadata in manifest",
+            long = "inf",
+            short = 'i',
+            default_value_t = false
+        )]
+        inf: bool,
     },
 
     #[command(name = "make", about = "Make .ssd file from files and metadata")]

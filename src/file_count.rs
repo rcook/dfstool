@@ -1,3 +1,4 @@
+use crate::constants::DFS_TOTAL_FILES;
 use anyhow::{Error, bail};
 use std::convert::TryFrom;
 use std::result::Result as StdResult;
@@ -15,7 +16,7 @@ impl TryFrom<u8> for FileCount {
     type Error = Error;
 
     fn try_from(value: u8) -> StdResult<Self, Self::Error> {
-        if value > 31 {
+        if value > DFS_TOTAL_FILES {
             bail!("invalid file count {value}")
         }
 

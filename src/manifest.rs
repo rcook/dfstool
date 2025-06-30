@@ -1,6 +1,9 @@
+use std::path::PathBuf;
+
+use crate::boot_option::BootOption;
+use crate::disc_size::DiscSize;
 use crate::disc_title::DiscTitle;
 use crate::manifest_file::ManifestFile;
-use crate::{boot_option::BootOption, disc_size::DiscSize};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -21,6 +24,13 @@ pub struct Manifest {
     #[serde(rename = "bootOption", alias = "boot_option", default)]
     pub boot_option: BootOption,
 
-    #[serde(rename = "files")]
+    #[serde(
+        rename = "infFiles",
+        alias = "inf_files",
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    pub inf_files: Vec<PathBuf>,
+
+    #[serde(rename = "files", skip_serializing_if = "Vec::is_empty")]
     pub files: Vec<ManifestFile>,
 }

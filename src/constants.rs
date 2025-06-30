@@ -4,6 +4,10 @@ pub const START_SECTOR: usize = 2;
 
 pub const SECTOR_SIZE: usize = 256;
 
-pub const LOSSLESS_BBC_BASIC_EXT: &str = ".bbc";
+pub const LOSSLESS_BBC_BASIC_EXT: &str = "bbc";
 
-pub const LOSSY_BBC_BASIC_EXT: &str = ".bbc.txt";
+pub const LOSSY_BBC_BASIC_EXT: &str = "bbc.txt";
+
+pub const INF_EXT: &str = "inf";
+
+pub const DFS_TOTAL_FILES: u8 = 31;

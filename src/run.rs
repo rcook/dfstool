@@ -1,6 +1,6 @@
 use crate::args::{Args, Command};
 use crate::detokenize_command::do_detokenize;
-use crate::extract_command::do_extract;
+use crate::extract_command::{ExtractOpts, do_extract};
 use crate::make_command::do_make;
 use crate::manifest_command::do_manifest;
 use crate::show_command::do_show;
@@ -22,12 +22,16 @@ pub fn run() -> Result<()> {
             overwrite,
             no_detokenize,
             lossless,
+            inf,
         } => do_extract(
             &input_path,
             &output_dir,
-            overwrite,
-            !no_detokenize,
-            lossless,
+            &ExtractOpts {
+                overwrite,
+                detokenize: !no_detokenize,
+                lossless,
+                inf,
+            },
         )?,
         Command::Make {
             manifest_path,

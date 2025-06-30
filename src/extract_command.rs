@@ -1,41 +1,42 @@
 use crate::bbc_basic::{detokenize_source, is_bbc_basic_file};
 use crate::catalogue::Catalogue;
-use crate::constants::{LOSSLESS_BBC_BASIC_EXT, LOSSY_BBC_BASIC_EXT, MANIFEST_VERSION};
+use crate::catalogue_entry::CatalogueEntry;
+use crate::constants::{INF_EXT, LOSSLESS_BBC_BASIC_EXT, LOSSY_BBC_BASIC_EXT, MANIFEST_VERSION};
+use crate::file_spec::FileSpec;
 use crate::file_type::{FileType, KnownFileType};
+use crate::inf::make_inf_file;
 use crate::manifest::Manifest;
+use crate::path_util::add_extension;
 use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
+use pathdiff::diff_paths;
 use std::ffi::OsStr;
 use std::fs::{File, create_dir_all};
 use std::io::{ErrorKind, Read, Seek, SeekFrom, Write, copy};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tempfile::tempfile;
 use zip::ZipArchive;
 
-pub fn do_extract(
-    input_path: &Path,
-    output_dir: &Path,
-    overwrite: bool,
-    detokenize: bool,
-    lossless: bool,
-) -> Result<()> {
+#[allow(clippy::struct_excessive_bools)]
+pub struct ExtractOpts {
+    pub overwrite: bool,
+    pub detokenize: bool,
+    pub lossless: bool,
+    pub inf: bool,
+}
+
+pub fn do_extract(input_path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
     if input_path.extension().and_then(OsStr::to_str) == Some("zip") {
-        extract_from_zip(input_path, output_dir, overwrite, detokenize, lossless)?;
+        extract_from_zip(input_path, output_dir, opts)?;
     } else {
-        extract_from_ssd(input_path, output_dir, overwrite, detokenize, lossless)?;
+        extract_from_ssd(input_path, output_dir, opts)?;
     }
     Ok(())
 }
 
 // Zip file must contain exactly one .ssd file. All other files
 // will be ignored.
-fn extract_from_zip(
-    input_path: &Path,
-    output_dir: &Path,
-    overwrite: bool,
-    detokenize: bool,
-    lossless: bool,
-) -> Result<()> {
+fn extract_from_zip(input_path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
     let mut zip_file = match File::open(input_path) {
         Ok(f) => f,
         Err(e) if e.kind() == ErrorKind::NotFound => bail!(
@@ -74,18 +75,10 @@ fn extract_from_zip(
     copy(&mut archive_file, &mut input_file)?;
     input_file.rewind()?;
 
-    extract_files(
-        input_path, output_dir, overwrite, detokenize, lossless, input_file,
-    )
+    extract_files(input_path, output_dir, opts, input_file)
 }
 
-fn extract_from_ssd(
-    input_path: &Path,
-    output_dir: &Path,
-    overwrite: bool,
-    detokenize: bool,
-    lossless: bool,
-) -> Result<()> {
+fn extract_from_ssd(input_path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
     let input_file = match File::open(input_path) {
         Ok(f) => f,
         Err(e) if e.kind() == ErrorKind::NotFound => bail!(
@@ -95,17 +88,13 @@ fn extract_from_ssd(
         Err(e) => bail!(e),
     };
 
-    extract_files(
-        input_path, output_dir, overwrite, detokenize, lossless, input_file,
-    )
+    extract_files(input_path, output_dir, opts, input_file)
 }
 
 fn extract_files<R: Read + Seek>(
     input_path: &Path,
     output_dir: &Path,
-    overwrite: bool,
-    detokenize: bool,
-    lossless: bool,
+    opts: &ExtractOpts,
     mut input_file: R,
 ) -> Result<()> {
     if !output_dir.exists() {
@@ -126,38 +115,38 @@ fn extract_files<R: Read + Seek>(
     manifest_file_name.push_str(".json");
     let manifest_path = output_dir.join(manifest_file_name);
 
-    let files = catalogue
-        .entries
-        .into_iter()
+    let mut entries = catalogue.entries;
+    entries.sort_by(|a, b| FileSpec::compare(&a.descriptor, &b.descriptor));
+
+    let extracted_files = entries
+        .iter()
         .map(|entry| {
-            let d = &entry.descriptor;
-
-            let mut bytes = vec![0; u32::from(entry.length) as usize];
-            input_file.seek(SeekFrom::Start(
-                u64::from(u16::from(entry.start_sector)) * 256,
-            ))?;
-            input_file.read_exact(&mut bytes)?;
-
-            let content_path = output_dir.join(d.content_path());
-            let mut content_file = open_for_write(&content_path, overwrite)?;
-            content_file.write_all(&bytes)?;
-
-            let is_bbc_basic = is_bbc_basic_file(&content_path)?;
-            if detokenize && is_bbc_basic {
-                // Attempt to detokenize the file just in case it contains BASIC
-                // Don't fail if it can't be detokenized
-                _ = detokenize_file(&content_path, overwrite, lossless);
-            }
-
-            Ok(d.to_manifest_file(FileType::Known(if is_bbc_basic {
-                KnownFileType::BbcBasic
-            } else {
-                KnownFileType::Other
-            })))
+            let file_type = extract_file(output_dir, opts, entry, &mut input_file)?;
+            Ok((entry, file_type))
         })
         .collect::<Result<Vec<_>>>()?;
 
-    let manifest_file = open_for_write(&manifest_path, overwrite)?;
+    let (inf_files, files) = if opts.inf {
+        let inf_files = extracted_files
+            .into_iter()
+            .map(|(entry, (content_path, _))| {
+                let inf_path = add_extension(&content_path, INF_EXT)?;
+                make_inf_file(&inf_path, entry, opts.overwrite)?;
+                let rel_inf_path = diff_paths(inf_path, output_dir)
+                    .ok_or_else(|| anyhow!("could not determine relative path"))?;
+                Ok(rel_inf_path)
+            })
+            .collect::<Result<Vec<_>>>()?;
+        (inf_files, Vec::new())
+    } else {
+        let files = extracted_files
+            .into_iter()
+            .map(|(entry, (_, file_type))| entry.descriptor.to_manifest_file(file_type))
+            .collect();
+        (Vec::new(), files)
+    };
+
+    let manifest_file = open_for_write(&manifest_path, opts.overwrite)?;
     serde_json::to_writer_pretty(
         manifest_file,
         &Manifest {
@@ -165,6 +154,7 @@ fn extract_files<R: Read + Seek>(
             disc_title: Some(catalogue.disc_title),
             disc_size: catalogue.disc_size,
             boot_option: catalogue.boot_option,
+            inf_files,
             files,
         },
     )?;
@@ -172,18 +162,45 @@ fn extract_files<R: Read + Seek>(
     Ok(())
 }
 
-fn detokenize_file(input_path: &Path, overwrite: bool, lossless: bool) -> Result<()> {
-    let output_dir = input_path
-        .parent()
-        .ok_or_else(|| anyhow!("cannot get parent"))?;
-    let file_name = input_path
-        .file_name()
-        .ok_or_else(|| anyhow!("cannot get file name"))?;
-    let output_path = output_dir.join(if lossless {
-        format!("{f}{LOSSLESS_BBC_BASIC_EXT}", f = file_name.display())
+fn extract_file<R: Read + Seek>(
+    output_dir: &Path,
+    opts: &ExtractOpts,
+    entry: &CatalogueEntry,
+    mut input_file: R,
+) -> Result<(PathBuf, FileType)> {
+    let d = &entry.descriptor;
+    let mut bytes = vec![0; u32::from(entry.length) as usize];
+    input_file.seek(SeekFrom::Start(
+        u64::from(u16::from(entry.start_sector)) * 256,
+    ))?;
+    input_file.read_exact(&mut bytes)?;
+    let content_path = output_dir.join(d.content_path());
+    let mut content_file = open_for_write(&content_path, opts.overwrite)?;
+    content_file.write_all(&bytes)?;
+    let is_bbc_basic = is_bbc_basic_file(&content_path)?;
+    if opts.detokenize && is_bbc_basic {
+        // Attempt to detokenize the file just in case it contains BASIC
+        // Don't fail if it can't be detokenized
+        _ = detokenize_file(&content_path, opts.overwrite, opts.lossless);
+    }
+
+    let file_type = FileType::Known(if is_bbc_basic {
+        KnownFileType::BbcBasic
     } else {
-        format!("{f}{LOSSY_BBC_BASIC_EXT}", f = file_name.display())
+        KnownFileType::Other
     });
+    Ok((content_path, file_type))
+}
+
+fn detokenize_file(input_path: &Path, overwrite: bool, lossless: bool) -> Result<()> {
+    let output_path = add_extension(
+        input_path,
+        if lossless {
+            LOSSLESS_BBC_BASIC_EXT
+        } else {
+            LOSSY_BBC_BASIC_EXT
+        },
+    )?;
 
     let output_file = open_for_write(&output_path, overwrite)?;
     let mut input_file = File::open(input_path)?;

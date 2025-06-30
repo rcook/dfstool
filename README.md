@@ -79,6 +79,10 @@ of JSON that looks like the following:
 },
 ```
 
+Metadata can also be stored in .inf files. These can be created using
+the `--inf` option passed to the `extract` command. The `make` and
+`manifest` commands will also import .inf files if when provided.
+
 The fields are as follows:
 
 * `fileName`: the DFS file name
