@@ -115,7 +115,7 @@ fn extract_files<R: Read + Seek>(
     let catalogue = Catalogue::from_reader(&mut input_file)?;
 
     let mut manifest_file_name = String::new();
-    manifest_file_name.push_str(input_path.file_name().and_then(OsStr::to_str).ok_or_else(
+    manifest_file_name.push_str(input_path.file_stem().and_then(OsStr::to_str).ok_or_else(
         || {
             anyhow!(
                 "could not get file name from {input_path}",
