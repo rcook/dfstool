@@ -1,11 +1,7 @@
 use crate::args::{Args, Command};
-use crate::detokenize_command::do_detokenize;
-use crate::extract_command::{ExtractOpts, do_extract};
-use crate::make_command::do_make;
-use crate::manifest_command::do_manifest;
-use crate::new_command::do_new;
-use crate::show_command::do_show;
-use crate::tokenize_command::do_tokenize;
+use crate::commands::{
+    ExtractOpts, do_detokenize, do_extract, do_make, do_manifest, do_new, do_show, do_tokenize,
+};
 use anyhow::Result;
 use clap::Parser;
 
