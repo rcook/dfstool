@@ -46,7 +46,7 @@ pub fn run() -> Result<()> {
             output_path,
             overwrite,
         } => run_manifest(&dir, output_path.as_ref(), overwrite)?,
-        Command::Show { path: ssd_path } => run_show(&ssd_path)?,
+        Command::Show { path } => run_show(&path)?,
         Command::Tokenize {
             path,
             output_path,

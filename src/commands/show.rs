@@ -4,8 +4,8 @@ use crate::dfs::{
 use anyhow::{Error, Result};
 use std::path::Path;
 
-pub fn run_show(ssd_path: &Path) -> Result<()> {
-    let catalogue = Catalogue::from_image_file(ssd_path)?;
+pub fn run_show(path: &Path) -> Result<()> {
+    let catalogue = Catalogue::from_image_file(path)?;
     println!(
         "{label:<13}: {value}",
         label = "Title",
