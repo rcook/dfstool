@@ -1,6 +1,6 @@
 use crate::dfs::{
     BootOption, Catalogue, CatalogueEntry, FileCount, FileDescriptor, FileSpec, Length,
-    SECTOR_SIZE, START_SECTOR, get_file_sector_count,
+    SECTOR_BYTES, START_SECTOR, SectorSize, get_file_sector_count,
 };
 use crate::metadata::{Manifest, read_inf_file};
 use crate::path_util::strip_extension;
@@ -20,7 +20,7 @@ pub fn new_image_file(
     manifest.inf_files.sort();
     manifest.files.sort_by(FileSpec::compare);
 
-    let mut bytes = vec![0u8; u16::from(manifest.disc_size) as usize * SECTOR_SIZE];
+    let mut bytes = vec![0u8; u16::from(manifest.disc_size) as usize * usize::from(SECTOR_BYTES)];
 
     let mut start_sector = START_SECTOR;
     let mut entries = Vec::new();
@@ -49,7 +49,7 @@ pub fn new_image_file(
 
     let disc_size = manifest.disc_size;
 
-    if start_sector > u16::from(disc_size) as usize {
+    if u16::from(start_sector) > u16::from(disc_size) {
         bail!("exceeded capacity of disc")
     }
 
@@ -81,21 +81,19 @@ pub fn new_image_file(
 
 fn write_content(
     bytes: &mut [u8],
-    content_path: &Path,
+    path: &Path,
     descriptor: FileDescriptor,
-    start_sector: usize,
-) -> Result<(CatalogueEntry, usize)> {
-    let m = metadata(content_path)?;
-    let length: Length = <u32 as TryFrom<u64>>::try_from(m.len())?.try_into()?;
-    let temp_start_sector = <u16 as TryFrom<usize>>::try_from(start_sector)?.try_into()?;
-    let temp_len = usize::try_from(m.len())?;
-    let sector_count = get_file_sector_count(temp_len);
-    let mut f = File::open(content_path)?;
-    let start_offset = start_sector * SECTOR_SIZE;
-    let end_offset = start_offset + temp_len;
+    start_sector: SectorSize,
+) -> Result<(CatalogueEntry, SectorSize)> {
+    let m = metadata(path)?;
+    let length = Length::try_from(u32::try_from(m.len())?)?;
+    let mut f = File::open(path)?;
+    let start_offset = usize::from(start_sector) * usize::from(SECTOR_BYTES);
+    let end_offset = start_offset + usize::try_from(m.len())?;
     f.read_exact(&mut bytes[start_offset..end_offset])?;
+
     Ok((
-        CatalogueEntry::new(descriptor, length, temp_start_sector),
-        sector_count,
+        CatalogueEntry::new(descriptor, length, start_sector),
+        get_file_sector_count(length)?,
     ))
 }

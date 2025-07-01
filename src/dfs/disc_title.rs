@@ -1,4 +1,4 @@
-use crate::dfs::{CatalogueBytes, SECTOR_SIZE, is_disc_title_char};
+use crate::dfs::{CatalogueBytes, SECTOR_BYTES, is_disc_title_char};
 use anyhow::{Error, Result, bail};
 use serde::de::Error as SerdeError;
 use serde::{Deserialize, Deserializer, Serialize};
@@ -13,7 +13,9 @@ impl DiscTitle {
     pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
         let mut title = String::with_capacity(12);
         title.push_str(str::from_utf8(&bytes[0..8])?);
-        title.push_str(str::from_utf8(&bytes[SECTOR_SIZE..SECTOR_SIZE + 4])?);
+        title.push_str(str::from_utf8(
+            &bytes[usize::from(SECTOR_BYTES)..usize::from(SECTOR_BYTES) + 4],
+        )?);
         let s = title.trim_end_matches(' ').trim_end_matches('\0');
         s.parse()
     }

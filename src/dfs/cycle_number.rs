@@ -1,4 +1,4 @@
-use crate::dfs::{CatalogueBytes, SECTOR_SIZE};
+use crate::dfs::{CatalogueBytes, SECTOR_BYTES};
 use anyhow::{Result, bail};
 use serde::de::Error as SerdeError;
 use serde::{Deserialize, Deserializer, Serialize};
@@ -18,11 +18,11 @@ impl CycleNumber {
     }
 
     pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
-        Self::new(Self::from_bcd(bytes[SECTOR_SIZE + 4])?)
+        Self::new(Self::from_bcd(bytes[usize::from(SECTOR_BYTES) + 4])?)
     }
 
     pub fn write_to_catalogue(&self, bytes: &mut [u8]) -> Result<()> {
-        bytes[SECTOR_SIZE + 4] = Self::to_bcd(self.0)?;
+        bytes[usize::from(SECTOR_BYTES) + 4] = Self::to_bcd(self.0)?;
         Ok(())
     }
 

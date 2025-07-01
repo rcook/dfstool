@@ -1,5 +1,7 @@
-use crate::dfs::{Catalogue, FileSpec, SECTOR_SIZE, START_SECTOR, get_file_sector_count};
-use anyhow::Result;
+use crate::dfs::{
+    Catalogue, FileSpec, SECTOR_BYTES, START_SECTOR, SectorSize, get_file_sector_count,
+};
+use anyhow::{Error, Result};
 use std::path::Path;
 
 pub fn run_show(ssd_path: &Path) -> Result<()> {
@@ -33,11 +35,16 @@ pub fn run_show(ssd_path: &Path) -> Result<()> {
         value = total_sectors
     );
 
-    let used_sectors = catalogue.entries.iter().fold(0, |acc, e| {
-        acc + get_file_sector_count(u32::from(e.length) as usize)
-    });
-    let free_sectors = total_sectors - used_sectors - START_SECTOR;
-    let free_bytes = free_sectors * SECTOR_SIZE;
+    let used_sectors = usize::from(
+        catalogue
+            .entries
+            .iter()
+            .try_fold(SectorSize::ZERO, |acc, entry| {
+                Ok::<SectorSize, Error>(acc + get_file_sector_count(entry.length)?)
+            })?,
+    );
+    let free_sectors = total_sectors - used_sectors - usize::from(START_SECTOR);
+    let free_bytes = free_sectors * usize::from(SECTOR_BYTES);
 
     println!(
         "{label:<13}: {value} ({free_bytes} bytes)",

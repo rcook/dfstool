@@ -15,7 +15,8 @@ mod file_name;
 mod file_offset;
 mod file_spec;
 mod length;
-mod start_sector;
+mod sector_bytes;
+mod sector_size;
 mod util;
 
 pub use address::*;
@@ -35,5 +36,6 @@ pub use file_name::*;
 pub use file_offset::*;
 pub use file_spec::*;
 pub use length::*;
-pub use start_sector::*;
+pub use sector_bytes::*;
+pub use sector_size::*;
 pub use util::*;

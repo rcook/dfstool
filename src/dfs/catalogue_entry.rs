@@ -1,11 +1,11 @@
-use crate::dfs::{CatalogueBytes, FileDescriptor, Length, SECTOR_SIZE, StartSector};
+use crate::dfs::{CatalogueBytes, FileDescriptor, Length, SECTOR_BYTES, SectorSize};
 use anyhow::Result;
 
 #[derive(Debug)]
 pub struct CatalogueEntry {
     pub descriptor: FileDescriptor,
     pub length: Length,
-    pub start_sector: StartSector,
+    pub start_sector: SectorSize,
 }
 
 impl CatalogueEntry {
@@ -22,11 +22,7 @@ impl CatalogueEntry {
         Ok(())
     }
 
-    pub const fn new(
-        descriptor: FileDescriptor,
-        length: Length,
-        start_sector: StartSector,
-    ) -> Self {
+    pub const fn new(descriptor: FileDescriptor, length: Length, start_sector: SectorSize) -> Self {
         Self {
             descriptor,
             length,
@@ -44,7 +40,7 @@ impl CatalogueEntry {
         let d = (temp & 0b0111_1111) as char;
         let directory = d.try_into()?;
 
-        let offset2 = SECTOR_SIZE + offset;
+        let offset2 = usize::from(SECTOR_BYTES) + offset;
 
         let (load_address_top, execution_address_top, length_top, start_sector_top) =
             Self::extract_extra_bits(bytes[offset2 + 6]);
@@ -83,7 +79,7 @@ impl CatalogueEntry {
         bytes[offset + 7] = (if self.descriptor.locked { 0x80 } else { 0 })
             | self.descriptor.directory.to_char() as u8;
 
-        let offset2 = offset + SECTOR_SIZE;
+        let offset2 = offset + usize::from(SECTOR_BYTES);
 
         let load_address = u32::from(self.descriptor.load_address);
         let execution_address = u32::from(self.descriptor.execution_address);

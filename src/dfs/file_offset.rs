@@ -1,4 +1,4 @@
-use crate::dfs::{CatalogueBytes, FileCount, SECTOR_SIZE};
+use crate::dfs::{CatalogueBytes, FileCount, SECTOR_BYTES};
 use anyhow::{Result, bail};
 use std::convert::From;
 
@@ -21,12 +21,12 @@ impl FileOffset {
     }
 
     pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
-        let value = bytes[SECTOR_SIZE + 5];
+        let value = bytes[usize::from(SECTOR_BYTES) + 5];
         Self::new(value)
     }
 
     pub fn write_to_catalogue(&self, bytes: &mut [u8]) {
-        bytes[SECTOR_SIZE + 5] = self.0;
+        bytes[usize::from(SECTOR_BYTES) + 5] = self.0;
     }
 
     const fn is_in_range(value: u8) -> bool {

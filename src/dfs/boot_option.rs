@@ -1,4 +1,4 @@
-use crate::dfs::{CatalogueBytes, SECTOR_SIZE};
+use crate::dfs::{CatalogueBytes, SECTOR_BYTES};
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 
@@ -17,7 +17,7 @@ pub enum BootOption {
 
 impl BootOption {
     pub fn from_catalogue_bytes(bytes: &CatalogueBytes) -> Result<Self> {
-        let temp = bytes[SECTOR_SIZE + 6];
+        let temp = bytes[usize::from(SECTOR_BYTES) + 6];
         assert_eq!(0, temp & 0b1100_1100);
         Ok(match (temp & 0b0011_0000) >> 4 {
             0 => Self::None,
@@ -29,6 +29,6 @@ impl BootOption {
     }
 
     pub fn write_to_catalogue(self, bytes: &mut [u8]) {
-        bytes[SECTOR_SIZE + 6] |= (self as u8) << 4;
+        bytes[usize::from(SECTOR_BYTES) + 6] |= (self as u8) << 4;
     }
 }

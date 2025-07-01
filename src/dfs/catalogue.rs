@@ -1,6 +1,6 @@
 use crate::dfs::{
     BootOption, CatalogueBytes, CatalogueEntry, CycleNumber, DiscSize, DiscTitle, FileOffset,
-    SECTOR_SIZE,
+    SECTOR_BYTES,
 };
 use anyhow::{Result, bail};
 use std::fs::File;
@@ -19,12 +19,12 @@ pub struct Catalogue {
 }
 
 impl Catalogue {
-    pub fn from_file(ssd_path: &Path) -> Result<Catalogue> {
-        Self::from_reader(File::open(ssd_path)?)
+    pub fn from_file(path: &Path) -> Result<Catalogue> {
+        Self::from_reader(File::open(path)?)
     }
 
     pub fn from_reader<R: Read>(mut reader: R) -> Result<Catalogue> {
-        let mut bytes = [0; SECTOR_SIZE * 2];
+        let mut bytes = vec![0; usize::from(SECTOR_BYTES) * 2];
         reader.read_exact(&mut bytes)?;
 
         if !Self::is_valid_catalogue(&bytes) {
@@ -81,7 +81,7 @@ impl Catalogue {
     }
 
     // https://www.geraldholdsworth.co.uk/documents/DiscImage.pdf
-    fn is_valid_catalogue(bytes: &[u8; SECTOR_SIZE * 2]) -> bool {
+    fn is_valid_catalogue(bytes: &CatalogueBytes) -> bool {
         if !bytes[0x0000..0x0009]
             .iter()
             .all(|&b| (b & 0x80) == 0 && b > 31 || b == 0)

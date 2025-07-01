@@ -1,6 +1,6 @@
 use crate::bbc_basic::is_bbc_basic_file;
 use crate::constants::{INF_EXT, MANIFEST_VERSION};
-use crate::dfs::{BootOption, CycleNumber, DfsPath, DiscSize, FileSpec};
+use crate::dfs::{Address, BootOption, CycleNumber, DfsPath, DiscSize, FileSpec};
 use crate::metadata::{File, FileType, KnownFileType, Manifest};
 use crate::path_util::{add_extension, has_extension, strip_extension};
 use crate::util::open_for_write;
@@ -138,8 +138,8 @@ fn make_manifest_file(manifest_dir: &Path, path: &Path, dfs_path: DfsPath) -> Re
         file_name: dfs_path.file_name,
         directory: dfs_path.directory,
         locked: false,
-        load_address: 0.try_into()?,
-        execution_address: 0.try_into()?,
+        load_address: Address::ZERO,
+        execution_address: Address::ZERO,
         content_path,
         r#type: file_type,
     })
