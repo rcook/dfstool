@@ -1,14 +1,16 @@
 use crate::bbc_basic::{detokenize_source, is_bbc_basic_file};
 use crate::constants::{INF_EXT, LOSSLESS_BBC_BASIC_EXT, LOSSY_BBC_BASIC_EXT, MANIFEST_VERSION};
-use crate::dfs::{Catalogue, CatalogueEntry, FileSpec};
+use crate::dfs::{Catalogue, CatalogueEntry, FileSpec, SECTOR_BYTES};
+use crate::image_reader::ImageReader;
 use crate::metadata::{FileType, KnownFileType, Manifest, make_inf_file};
 use crate::path_util::add_extension;
+use crate::ssd_reader::SsdReader;
 use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
 use pathdiff::diff_paths;
 use std::ffi::OsStr;
 use std::fs::{File, create_dir_all};
-use std::io::{ErrorKind, Read, Seek, SeekFrom, Write, copy};
+use std::io::{ErrorKind, Read, Seek, Write, copy};
 use std::path::{Path, PathBuf};
 use tempfile::tempfile;
 use zip::ZipArchive;
@@ -72,7 +74,8 @@ fn extract_from_zip(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Resul
     copy(&mut archive_file, &mut f)?;
     f.rewind()?;
 
-    extract_files(path, output_dir, opts, f)
+    let reader = SsdReader::new(f, SECTOR_BYTES)?;
+    extract_files(path, output_dir, opts, reader)
 }
 
 fn extract_from_image(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
@@ -84,20 +87,21 @@ fn extract_from_image(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Res
         Err(e) => bail!(e),
     };
 
-    extract_files(path, output_dir, opts, f)
+    let reader = SsdReader::new(f, SECTOR_BYTES)?;
+    extract_files(path, output_dir, opts, reader)
 }
 
-fn extract_files<R: Read + Seek>(
+fn extract_files<R: ImageReader>(
     path: &Path,
     output_dir: &Path,
     opts: &ExtractOpts,
-    mut f: R,
+    mut reader: R,
 ) -> Result<()> {
     if !output_dir.exists() {
         create_dir_all(output_dir)?;
     }
 
-    let catalogue = Catalogue::from_reader(&mut f)?;
+    let catalogue = Catalogue::from_image_reader(&mut reader)?;
 
     let mut manifest_file_name = String::new();
     manifest_file_name.push_str(
@@ -114,7 +118,7 @@ fn extract_files<R: Read + Seek>(
     let extracted_files = entries
         .iter()
         .map(|entry| {
-            let file_type = extract_file(output_dir, opts, entry, &mut f)?;
+            let file_type = extract_file(output_dir, opts, entry, &mut reader)?;
             Ok((entry, file_type))
         })
         .collect::<Result<Vec<_>>>()?;
@@ -156,21 +160,21 @@ fn extract_files<R: Read + Seek>(
     Ok(())
 }
 
-fn extract_file<R: Read + Seek>(
+fn extract_file<R: ImageReader>(
     output_dir: &Path,
     opts: &ExtractOpts,
     entry: &CatalogueEntry,
-    mut input_file: R,
+    reader: &mut R,
 ) -> Result<(PathBuf, FileType)> {
     let d = &entry.descriptor;
+
     let mut bytes = vec![0; u32::from(entry.length) as usize];
-    input_file.seek(SeekFrom::Start(
-        u64::from(u16::from(entry.start_sector)) * 256,
-    ))?;
-    input_file.read_exact(&mut bytes)?;
+    reader.read_bytes(0, entry.start_sector, &mut bytes)?;
+
     let content_path = output_dir.join(d.content_path());
     let mut content_file = open_for_write(&content_path, opts.overwrite)?;
     content_file.write_all(&bytes)?;
+
     let is_bbc_basic = is_bbc_basic_file(&content_path)?;
     if opts.detokenize && is_bbc_basic {
         // Attempt to detokenize the file just in case it contains BASIC
@@ -183,6 +187,7 @@ fn extract_file<R: Read + Seek>(
     } else {
         KnownFileType::Other
     });
+
     Ok((content_path, file_type))
 }
 

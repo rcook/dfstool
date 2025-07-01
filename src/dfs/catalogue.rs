@@ -1,10 +1,11 @@
 use crate::dfs::{
     BootOption, CatalogueBytes, CatalogueEntry, CycleNumber, DiscSize, DiscTitle, FileOffset,
-    SECTOR_BYTES,
+    SECTOR_BYTES, SectorSize,
 };
+use crate::image_reader::ImageReader;
+use crate::ssd_reader::SsdReader;
 use anyhow::{Result, bail};
 use std::fs::File;
-use std::io::Read;
 use std::path::Path;
 
 // https://beebwiki.mdfs.net/Acorn_DFS_disc_format
@@ -19,13 +20,21 @@ pub struct Catalogue {
 }
 
 impl Catalogue {
-    pub fn from_file(path: &Path) -> Result<Catalogue> {
-        Self::from_reader(File::open(path)?)
+    pub fn from_image_file(path: &Path) -> Result<Catalogue> {
+        // TBD: Use a different reader for .dsd files
+        let mut ssd_reader = SsdReader::new(File::open(path)?, SECTOR_BYTES)?;
+        Self::from_image_reader(&mut ssd_reader)
     }
 
-    pub fn from_reader<R: Read>(mut reader: R) -> Result<Catalogue> {
-        let mut bytes = vec![0; usize::from(SECTOR_BYTES) * 2];
-        reader.read_exact(&mut bytes)?;
+    pub fn from_image_reader<R: ImageReader>(reader: &mut R) -> Result<Catalogue> {
+        let sector_bytes = usize::from(reader.sector_bytes());
+        let mut bytes = vec![0; sector_bytes * 2];
+        reader.read_bytes(0, SectorSize::ZERO, &mut bytes[0..sector_bytes])?;
+        reader.read_bytes(
+            0,
+            SectorSize::ONE,
+            &mut bytes[sector_bytes..sector_bytes * 2],
+        )?;
 
         if !Self::is_valid_catalogue(&bytes) {
             bail!("input file does not contain a valid disc image")

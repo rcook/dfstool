@@ -5,8 +5,6 @@ macro_rules! u18 {
         pub struct $name(u32);
 
         impl $name {
-            pub const ZERO: Self = Self(0);
-
             // https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv
             pub const fn to_u32(self) -> u32 {
                 self.0

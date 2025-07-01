@@ -17,6 +17,7 @@ mod file_spec;
 mod length;
 mod sector_bytes;
 mod sector_size;
+mod side;
 mod util;
 
 pub use address::*;
@@ -38,4 +39,5 @@ pub use file_spec::*;
 pub use length::*;
 pub use sector_bytes::*;
 pub use sector_size::*;
+pub use side::*;
 pub use util::*;
