@@ -7,7 +7,7 @@ use std::result::Result as StdResult;
 #[derive(Debug, Parser)]
 #[command(
     name = "dfstool",
-    about = "Acorn DFS .ssd File Manager",
+    about = "Acorn DFS Disc Image Manager",
     after_help = "Documentation: https://github.com/rcook/dfstool/blob/main/README.md"
 )]
 pub struct Args {
