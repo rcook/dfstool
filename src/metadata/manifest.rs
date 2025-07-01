@@ -27,10 +27,11 @@ pub struct Manifest {
     #[serde(
         rename = "infFiles",
         alias = "inf_files",
-        skip_serializing_if = "Vec::is_empty"
+        skip_serializing_if = "Vec::is_empty",
+        default
     )]
     pub inf_files: Vec<PathBuf>,
 
-    #[serde(rename = "files", skip_serializing_if = "Vec::is_empty")]
+    #[serde(rename = "files", skip_serializing_if = "Vec::is_empty", default)]
     pub files: Vec<File>,
 }
