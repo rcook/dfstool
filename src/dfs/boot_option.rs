@@ -3,7 +3,6 @@ use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
-#[repr(u8)]
 pub enum BootOption {
     #[default]
     #[serde(rename = "none")]

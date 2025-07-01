@@ -39,3 +39,9 @@ impl From<FileCount> for FileOffset {
         Self(u8::from(value) << 3)
     }
 }
+
+impl From<FileOffset> for u8 {
+    fn from(value: FileOffset) -> Self {
+        value.0
+    }
+}

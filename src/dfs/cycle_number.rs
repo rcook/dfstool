@@ -74,6 +74,12 @@ impl<'de> Deserialize<'de> for CycleNumber {
     }
 }
 
+impl From<CycleNumber> for u8 {
+    fn from(value: CycleNumber) -> Self {
+        value.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::dfs::CycleNumber;
