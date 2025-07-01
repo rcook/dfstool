@@ -1,6 +1,8 @@
+use crate::disc_size::DiscSize;
 use clap::{Parser, Subcommand};
 use path_absolutize::Absolutize;
 use std::path::PathBuf;
+use std::result::Result as StdResult;
 
 #[derive(Debug, Parser)]
 #[command(
@@ -117,6 +119,23 @@ pub enum Command {
         overwrite: bool,
     },
 
+    #[command(name = "new", about = "Create a new, empty .ssd disc image")]
+    New {
+        #[arg(help = "Path to .ssd file", value_parser = parse_absolute_path)]
+        ssd_path: PathBuf,
+
+        #[arg(help = "Size of new disc image in sectors", value_parser = parse_disc_size)]
+        disc_size: Option<DiscSize>,
+
+        #[arg(
+            help = "Overwrite output file if it exists",
+            long = "overwrite",
+            short = 'f',
+            default_value_t = false
+        )]
+        overwrite: bool,
+    },
+
     #[command(name = "show", about = "Show catalogue")]
     Show {
         #[arg(help = "Path to .ssd file", required = true, value_parser = parse_absolute_path)]
@@ -141,9 +160,16 @@ pub enum Command {
     },
 }
 
-fn parse_absolute_path(s: &str) -> Result<PathBuf, String> {
+fn parse_absolute_path(s: &str) -> StdResult<PathBuf, String> {
     PathBuf::from(s)
         .absolutize()
         .map_err(|_| String::from("invalid path"))
         .map(|x| x.to_path_buf())
+}
+
+fn parse_disc_size(s: &str) -> StdResult<DiscSize, String> {
+    s.parse::<u16>()
+        .map_err(|_| String::from("invalid disc size"))?
+        .try_into()
+        .map_err(|_| String::from("invalid disc size"))
 }

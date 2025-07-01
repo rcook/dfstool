@@ -26,6 +26,8 @@ mod make_command;
 mod manifest;
 mod manifest_command;
 mod manifest_file;
+mod new_command;
+mod ops;
 mod path_util;
 mod run;
 mod show_command;
