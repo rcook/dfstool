@@ -9,20 +9,20 @@ use clap::Parser;
 pub fn run() -> Result<()> {
     match Args::parse().command {
         Command::Detokenize {
-            input_path,
-            output_path,
+            bbc_path,
+            output_text_path,
             overwrite,
             lossless,
-        } => run_detokenize(&input_path, output_path.as_ref(), overwrite, lossless)?,
+        } => run_detokenize(&bbc_path, output_text_path.as_ref(), overwrite, lossless)?,
         Command::Extract {
-            input_path,
+            path,
             output_dir,
             overwrite,
             no_detokenize,
             lossless,
             inf,
         } => run_extract(
-            &input_path,
+            &path,
             &output_dir,
             &ExtractOpts {
                 overwrite,
@@ -33,25 +33,25 @@ pub fn run() -> Result<()> {
         )?,
         Command::Make {
             manifest_path,
-            output_path,
+            output_ssd_path,
             overwrite,
-        } => run_make(&manifest_path, &output_path, overwrite)?,
+        } => run_make(&manifest_path, &output_ssd_path, overwrite)?,
         Command::New {
-            ssd_path,
+            output_ssd_path,
             disc_size,
             overwrite,
-        } => run_new(&ssd_path, disc_size, overwrite)?,
+        } => run_new(&output_ssd_path, disc_size, overwrite)?,
         Command::Manifest {
-            dir,
-            output_path,
+            content_dir,
+            output_manifest_path,
             overwrite,
-        } => run_manifest(&dir, output_path.as_ref(), overwrite)?,
+        } => run_manifest(&content_dir, output_manifest_path.as_ref(), overwrite)?,
         Command::Show { ssd_path } => run_show(&ssd_path)?,
         Command::Tokenize {
-            input_path,
-            output_path,
+            text_path,
+            output_bbc_path,
             overwrite,
-        } => run_tokenize(&input_path, &output_path, overwrite)?,
+        } => run_tokenize(&text_path, &output_bbc_path, overwrite)?,
     }
     Ok(())
 }

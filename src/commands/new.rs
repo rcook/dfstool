@@ -4,15 +4,15 @@ use crate::ops::new_ssd;
 use anyhow::{Result, anyhow};
 use std::path::Path;
 
-pub fn run_new(ssd_path: &Path, disc_size: Option<DiscSize>, overwrite: bool) -> Result<()> {
-    let dir = ssd_path.parent().ok_or_else(|| {
+pub fn run_new(output_ssd_path: &Path, disc_size: Option<DiscSize>, overwrite: bool) -> Result<()> {
+    let dir = output_ssd_path.parent().ok_or_else(|| {
         anyhow!(
             "could not get directory from path {path}",
-            path = ssd_path.display()
+            path = output_ssd_path.display()
         )
     })?;
     new_ssd(
-        ssd_path,
+        output_ssd_path,
         overwrite,
         dir,
         Manifest {

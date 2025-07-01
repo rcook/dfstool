@@ -19,14 +19,14 @@ pub struct Args {
 pub enum Command {
     #[command(name = "detokenize", about = "Detokenize BBC BASIC program")]
     Detokenize {
-        #[arg(help = "Input file", required = true, value_parser = parse_absolute_path)]
-        input_path: PathBuf,
+        #[arg(help = "Path to BBC BASIC input file", required = true, value_parser = parse_absolute_path)]
+        bbc_path: PathBuf,
 
-        #[arg(help = "Output file", long = "output", short = 'o', value_parser = parse_absolute_path)]
-        output_path: Option<PathBuf>,
+        #[arg(help = "Path to output text file", long = "output", short = 'o', value_parser = parse_absolute_path)]
+        output_text_path: Option<PathBuf>,
 
         #[arg(
-            help = "Overwrite output file if it exists",
+            help = "Overwrite output file if it already exists",
             long = "overwrite",
             short = 'f',
             default_value_t = false
@@ -44,14 +44,14 @@ pub enum Command {
 
     #[command(name = "extract", about = "Extract files and metadata from .ssd file")]
     Extract {
-        #[arg(help = "Input file (.ssd or zipped .ssd)", required = true, value_parser = parse_absolute_path)]
-        input_path: PathBuf,
+        #[arg(help = "Path to input .ssd or .zip file", required = true, value_parser = parse_absolute_path)]
+        path: PathBuf,
 
-        #[arg(help = "Output directory", required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Path to output directory", required = true, value_parser = parse_absolute_path)]
         output_dir: PathBuf,
 
         #[arg(
-            help = "Overwrite output files if they exist",
+            help = "Overwrite output files if they already exist",
             long = "overwrite",
             short = 'f',
             default_value_t = false
@@ -84,14 +84,14 @@ pub enum Command {
 
     #[command(name = "make", about = "Make .ssd file from files and metadata")]
     Make {
-        #[arg(help = "Manifest path", required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Path to input manifest", required = true, value_parser = parse_absolute_path)]
         manifest_path: PathBuf,
 
-        #[arg(help = "Output path", required = true, value_parser = parse_absolute_path)]
-        output_path: PathBuf,
+        #[arg(help = "Path to output .ssd file", required = true, value_parser = parse_absolute_path)]
+        output_ssd_path: PathBuf,
 
         #[arg(
-            help = "Overwrite output file if it exists",
+            help = "Overwrite output file if it already exists",
             long = "overwrite",
             short = 'f',
             default_value_t = false
@@ -104,14 +104,14 @@ pub enum Command {
         about = "Generate a manifest file for the content in a given directory"
     )]
     Manifest {
-        #[arg(help = "Directory", required = true, value_parser = parse_absolute_path)]
-        dir: PathBuf,
+        #[arg(help = "Path to content directory", required = true, value_parser = parse_absolute_path)]
+        content_dir: PathBuf,
 
-        #[arg(help = "Output file", long = "output", short = 'o', value_parser = parse_absolute_path)]
-        output_path: Option<PathBuf>,
+        #[arg(help = "Path to output manifest file", long = "output", short = 'o', value_parser = parse_absolute_path)]
+        output_manifest_path: Option<PathBuf>,
 
         #[arg(
-            help = "Overwrite output file if it exists",
+            help = "Overwrite output file if it already exists",
             long = "overwrite",
             short = 'f',
             default_value_t = false
@@ -121,14 +121,14 @@ pub enum Command {
 
     #[command(name = "new", about = "Create a new, empty .ssd disc image")]
     New {
-        #[arg(help = "Path to .ssd file", value_parser = parse_absolute_path)]
-        ssd_path: PathBuf,
+        #[arg(help = "Path to output .ssd file", value_parser = parse_absolute_path)]
+        output_ssd_path: PathBuf,
 
         #[arg(help = "Size of new disc image in sectors", value_parser = parse_disc_size)]
         disc_size: Option<DiscSize>,
 
         #[arg(
-            help = "Overwrite output file if it exists",
+            help = "Overwrite output file if it already exists",
             long = "overwrite",
             short = 'f',
             default_value_t = false
@@ -138,20 +138,20 @@ pub enum Command {
 
     #[command(name = "show", about = "Show catalogue")]
     Show {
-        #[arg(help = "Path to .ssd file", required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Path to input .ssd file", required = true, value_parser = parse_absolute_path)]
         ssd_path: PathBuf,
     },
 
     #[command(name = "tokenize", about = "Tokenize BBC BASIC program")]
     Tokenize {
-        #[arg(help = "Input path", required = true, value_parser = parse_absolute_path)]
-        input_path: PathBuf,
+        #[arg(help = "Path to input text file", required = true, value_parser = parse_absolute_path)]
+        text_path: PathBuf,
 
-        #[arg(help = "Output path", required = true, value_parser = parse_absolute_path)]
-        output_path: PathBuf,
+        #[arg(help = "Path to BBC BASIC output file", required = true, value_parser = parse_absolute_path)]
+        output_bbc_path: PathBuf,
 
         #[arg(
-            help = "Overwrite output file if it exists",
+            help = "Overwrite output file if it already exists",
             long = "overwrite",
             short = 'f',
             default_value_t = false

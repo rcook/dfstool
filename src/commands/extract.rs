@@ -21,11 +21,11 @@ pub struct ExtractOpts {
     pub inf: bool,
 }
 
-pub fn run_extract(input_path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
-    if input_path.extension().and_then(OsStr::to_str) == Some("zip") {
-        extract_from_zip(input_path, output_dir, opts)?;
+pub fn run_extract(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
+    if path.extension().and_then(OsStr::to_str) == Some("zip") {
+        extract_from_zip(path, output_dir, opts)?;
     } else {
-        extract_from_ssd(input_path, output_dir, opts)?;
+        extract_from_ssd(path, output_dir, opts)?;
     }
     Ok(())
 }
