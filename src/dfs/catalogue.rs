@@ -1,6 +1,6 @@
 use crate::dfs::{
     BootOption, CatalogueBytes, CatalogueEntry, CycleNumber, DiscSize, DiscTitle, FileOffset,
-    SECTOR_BYTES, SectorSize,
+    SECTOR_BYTES, SectorSize, Side,
 };
 use crate::dsd_reader::DsdReader;
 use crate::image_reader::ImageReader;
@@ -42,8 +42,8 @@ impl Catalogue {
         let mut bytes = vec![0; sector_bytes * 2];
 
         (0..reader.sides())
-            .map(|side| {
-                reader.read_bytes(side, SectorSize::ZERO, &mut bytes)?;
+            .map(|i| {
+                reader.read_bytes(Side::try_from(i)?, SectorSize::ZERO, &mut bytes)?;
 
                 if !Self::is_valid_catalogue(&bytes) {
                     bail!("input file does not contain a valid disc image")

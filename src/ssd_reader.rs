@@ -39,7 +39,7 @@ impl<R: Read + Seek> ImageReader for SsdReader<R> {
         start_sector: SectorSize,
         buffer: &mut [u8],
     ) -> Result<()> {
-        if side != 0 {
+        if u8::from(side) > 0 {
             bail!("SSD reader supports one side only")
         }
 

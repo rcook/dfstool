@@ -119,9 +119,11 @@ fn extract_all<R: ImageReader>(
     let catalogues = Catalogue::from_image_reader(&mut reader)?;
     let double_sided = catalogues.len() > 1;
     for (i, catalogue) in catalogues.into_iter().enumerate() {
+        let side = Side::try_from(i)?;
+
         let (output_dir, manifest_path) = if double_sided {
             let output_dir = output_dir.join(format!("side{i}"));
-            let manifest_path = make_manifest_path(path, &output_dir, Some(u8::try_from(i)?))?;
+            let manifest_path = make_manifest_path(path, &output_dir, Some(side))?;
             (output_dir, manifest_path)
         } else {
             let manifest_path = make_manifest_path(path, output_dir, None)?;
@@ -132,12 +134,20 @@ fn extract_all<R: ImageReader>(
             create_dir_all(&output_dir)?;
         }
 
-        extract_single_side(catalogue, &manifest_path, &output_dir, opts, &mut reader)?;
+        extract_single_side(
+            side,
+            catalogue,
+            &manifest_path,
+            &output_dir,
+            opts,
+            &mut reader,
+        )?;
     }
     Ok(())
 }
 
 fn extract_single_side<R: ImageReader>(
+    side: Side,
     catalogue: Catalogue,
     manifest_path: &Path,
     output_dir: &Path,
@@ -150,7 +160,7 @@ fn extract_single_side<R: ImageReader>(
     let extracted_files = entries
         .iter()
         .map(|entry| {
-            let file_type = extract_file(output_dir, opts, entry, reader)?;
+            let file_type = extract_file(side, output_dir, opts, entry, reader)?;
             Ok((entry, file_type))
         })
         .collect::<Result<Vec<_>>>()?;
@@ -200,13 +210,14 @@ fn make_manifest_path(path: &Path, output_dir: &Path, side: Option<Side>) -> Res
             .ok_or_else(|| anyhow!("could not get file name from {path}", path = path.display()))?,
     );
     match side {
-        Some(side) => write!(file_name, "-side{side}.json")?,
+        Some(side) => write!(file_name, "-side{side}.json", side = u8::from(side))?,
         None => file_name.push_str(".json"),
     }
     Ok(output_dir.join(file_name))
 }
 
 fn extract_file<R: ImageReader>(
+    side: Side,
     output_dir: &Path,
     opts: &ExtractOpts,
     entry: &CatalogueEntry,
@@ -215,7 +226,7 @@ fn extract_file<R: ImageReader>(
     let d = &entry.descriptor;
 
     let mut bytes = vec![0; u32::from(entry.length) as usize];
-    reader.read_bytes(0, entry.start_sector, &mut bytes)?;
+    reader.read_bytes(side, entry.start_sector, &mut bytes)?;
 
     let content_path = output_dir.join(d.content_path());
     let mut content_file = open_for_write(&content_path, opts.overwrite)?;
