@@ -2,7 +2,6 @@ use crate::boot_option::BootOption;
 use crate::catalogue::Catalogue;
 use crate::catalogue_entry::CatalogueEntry;
 use crate::constants::{MANIFEST_VERSION, SECTOR_SIZE, START_SECTOR};
-use crate::cycle_number::CycleNumber;
 use crate::file_count::FileCount;
 use crate::file_descriptor::FileDescriptor;
 use crate::file_spec::FileSpec;
@@ -69,14 +68,13 @@ pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Res
         bail!("exceeded capacity of disc")
     }
 
-    let cycle_number = CycleNumber::new(95)?;
     let file_count: FileCount = u8::try_from(entries.len())?.try_into()?;
     let file_offset = file_count.into();
     let boot_option = BootOption::Exec;
 
     let catalogue = Catalogue::new(
         manifest.disc_title.unwrap_or_else(|| "".parse().unwrap()),
-        cycle_number,
+        manifest.cycle_number,
         file_offset,
         boot_option,
         disc_size,
