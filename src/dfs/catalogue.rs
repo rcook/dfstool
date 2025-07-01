@@ -28,7 +28,7 @@ impl Catalogue {
         reader.read_exact(&mut bytes)?;
 
         if !Self::is_valid_catalogue(&bytes) {
-            bail!("input file does not contain a valid .ssd file")
+            bail!("input file does not contain a valid disc image")
         }
 
         Self::from_catalogue_bytes(&bytes)
