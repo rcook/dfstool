@@ -1,6 +1,6 @@
 use crate::dfs::{
     BootOption, Catalogue, CatalogueEntry, FileCount, FileDescriptor, FileSpec, Length,
-    SECTOR_SIZE, START_SECTOR,
+    SECTOR_SIZE, START_SECTOR, get_file_sector_count,
 };
 use crate::metadata::{Manifest, read_inf_file};
 use crate::path_util::strip_extension;
@@ -89,8 +89,7 @@ fn write_content(
     let length: Length = <u32 as TryFrom<u64>>::try_from(m.len())?.try_into()?;
     let temp_start_sector = <u16 as TryFrom<usize>>::try_from(start_sector)?.try_into()?;
     let temp_len = usize::try_from(m.len())?;
-    let (q, r) = (temp_len / SECTOR_SIZE, temp_len % SECTOR_SIZE);
-    let sector_count = q + usize::from(r > 0);
+    let sector_count = get_file_sector_count(temp_len);
     let mut f = File::open(content_path)?;
     let start_offset = start_sector * SECTOR_SIZE;
     let end_offset = start_offset + temp_len;
