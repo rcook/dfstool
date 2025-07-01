@@ -74,8 +74,13 @@ fn extract_from_zip(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Resul
     copy(&mut archive_file, &mut f)?;
     f.rewind()?;
 
-    let reader = SsdReader::new(f, SECTOR_BYTES)?;
-    extract_files(path, output_dir, opts, reader)
+    match image_file_info.1.extension().and_then(OsStr::to_str) {
+        Some("ssd") => {
+            let reader = SsdReader::new(f, SECTOR_BYTES)?;
+            extract_files(path, output_dir, opts, reader)
+        }
+        _ => todo!(),
+    }
 }
 
 fn extract_from_image(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
@@ -87,8 +92,13 @@ fn extract_from_image(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Res
         Err(e) => bail!(e),
     };
 
-    let reader = SsdReader::new(f, SECTOR_BYTES)?;
-    extract_files(path, output_dir, opts, reader)
+    match path.extension().and_then(OsStr::to_str) {
+        Some("ssd") => {
+            let reader = SsdReader::new(f, SECTOR_BYTES)?;
+            extract_files(path, output_dir, opts, reader)
+        }
+        _ => todo!(),
+    }
 }
 
 fn extract_files<R: ImageReader>(
