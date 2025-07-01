@@ -1,6 +1,7 @@
 use crate::bbc_basic::{detokenize_source, is_bbc_basic_file};
 use crate::constants::{INF_EXT, LOSSLESS_BBC_BASIC_EXT, LOSSY_BBC_BASIC_EXT, MANIFEST_VERSION};
 use crate::dfs::{Catalogue, CatalogueEntry, FileSpec, SECTOR_BYTES};
+use crate::dsd_reader::DsdReader;
 use crate::image_reader::ImageReader;
 use crate::metadata::{FileType, KnownFileType, Manifest, make_inf_file};
 use crate::path_util::add_extension;
@@ -75,11 +76,15 @@ fn extract_from_zip(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Resul
     f.rewind()?;
 
     match image_file_info.1.extension().and_then(OsStr::to_str) {
-        Some("ssd") => {
-            let reader = SsdReader::new(f, SECTOR_BYTES)?;
+        Some("dsd") => {
+            let reader = DsdReader::new(f, SECTOR_BYTES);
             extract_files(path, output_dir, opts, reader)
         }
-        _ => todo!(),
+        Some("ssd") => {
+            let reader = SsdReader::new(f, SECTOR_BYTES);
+            extract_files(path, output_dir, opts, reader)
+        }
+        _ => bail!("unsupported file type {path}", path = path.display()),
     }
 }
 
@@ -93,11 +98,15 @@ fn extract_from_image(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Res
     };
 
     match path.extension().and_then(OsStr::to_str) {
-        Some("ssd") => {
-            let reader = SsdReader::new(f, SECTOR_BYTES)?;
+        Some("dsd") => {
+            let reader = DsdReader::new(f, SECTOR_BYTES);
             extract_files(path, output_dir, opts, reader)
         }
-        _ => todo!(),
+        Some("ssd") => {
+            let reader = SsdReader::new(f, SECTOR_BYTES);
+            extract_files(path, output_dir, opts, reader)
+        }
+        _ => bail!("unsupported file type {path}", path = path.display()),
     }
 }
 

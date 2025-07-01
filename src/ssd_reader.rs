@@ -3,22 +3,18 @@ use crate::image_reader::ImageReader;
 use anyhow::{Result, bail};
 use std::io::{Read, Seek, SeekFrom};
 
-#[allow(unused)]
 pub struct SsdReader<R: Read + Seek> {
     sector_bytes: SectorBytes,
-    len: u64,
     reader: R,
 }
 
 impl<R: Read + Seek> SsdReader<R> {
     #[allow(unused)]
-    pub fn new(mut reader: R, sector_bytes: SectorBytes) -> Result<Self> {
-        let len = reader.seek(SeekFrom::End(0))?;
-        Ok(Self {
+    pub const fn new(mut reader: R, sector_bytes: SectorBytes) -> Self {
+        Self {
             sector_bytes,
-            len,
             reader,
-        })
+        }
     }
 }
 

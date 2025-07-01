@@ -2,9 +2,11 @@ use crate::dfs::{
     BootOption, CatalogueBytes, CatalogueEntry, CycleNumber, DiscSize, DiscTitle, FileOffset,
     SECTOR_BYTES, SectorSize,
 };
+use crate::dsd_reader::DsdReader;
 use crate::image_reader::ImageReader;
 use crate::ssd_reader::SsdReader;
 use anyhow::{Result, bail};
+use std::ffi::OsStr;
 use std::fs::File;
 use std::path::Path;
 
@@ -21,9 +23,18 @@ pub struct Catalogue {
 
 impl Catalogue {
     pub fn from_image_file(path: &Path) -> Result<Catalogue> {
-        // TBD: Use a different reader for .dsd files
-        let mut ssd_reader = SsdReader::new(File::open(path)?, SECTOR_BYTES)?;
-        Self::from_image_reader(&mut ssd_reader)
+        let f = File::open(path)?;
+        match path.extension().and_then(OsStr::to_str) {
+            Some("dsd") => {
+                let mut reader = DsdReader::new(f, SECTOR_BYTES);
+                Self::from_image_reader(&mut reader)
+            }
+            Some("ssd") => {
+                let mut reader = SsdReader::new(f, SECTOR_BYTES);
+                Self::from_image_reader(&mut reader)
+            }
+            _ => bail!("unsupported file type {path}", path = path.display()),
+        }
     }
 
     pub fn from_image_reader<R: ImageReader>(reader: &mut R) -> Result<Catalogue> {

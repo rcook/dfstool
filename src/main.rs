@@ -3,6 +3,7 @@ mod bbc_basic;
 mod commands;
 mod constants;
 mod dfs;
+mod dsd_reader;
 mod image_reader;
 mod line_ending;
 mod metadata;
