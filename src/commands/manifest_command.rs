@@ -1,9 +1,7 @@
 use crate::bbc_basic::is_bbc_basic_file;
 use crate::constants::{INF_EXT, MANIFEST_VERSION};
 use crate::dfs::{BootOption, CycleNumber, DfsPath, DiscSize, FileSpec};
-use crate::file_type::{FileType, KnownFileType};
-use crate::manifest::Manifest;
-use crate::manifest_file::ManifestFile;
+use crate::metadata::{File, FileType, KnownFileType, Manifest};
 use crate::path_util::{add_extension, has_extension, strip_extension};
 use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
@@ -126,7 +124,7 @@ pub fn do_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -
     Ok(())
 }
 
-fn make_manifest_file(manifest_dir: &Path, path: &Path, dfs_path: DfsPath) -> Result<ManifestFile> {
+fn make_manifest_file(manifest_dir: &Path, path: &Path, dfs_path: DfsPath) -> Result<File> {
     let content_path =
         diff_paths(path, manifest_dir).ok_or_else(|| anyhow!("cannot build content path"))?;
 
@@ -136,7 +134,7 @@ fn make_manifest_file(manifest_dir: &Path, path: &Path, dfs_path: DfsPath) -> Re
         FileType::Known(KnownFileType::Other)
     };
 
-    Ok(ManifestFile {
+    Ok(File {
         file_name: dfs_path.file_name,
         directory: dfs_path.directory,
         locked: false,

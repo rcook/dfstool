@@ -1,5 +1,5 @@
 use crate::dfs::{BootOption, CycleNumber, DiscSize};
-use crate::manifest::Manifest;
+use crate::metadata::Manifest;
 use crate::ops::new_ssd;
 use anyhow::{Result, anyhow};
 use std::path::Path;

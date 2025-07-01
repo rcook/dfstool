@@ -1,6 +1,5 @@
 use crate::dfs::{Address, Directory, FileName, FileSpec};
-use crate::file_type::FileType;
-use crate::manifest_file::ManifestFile;
+use crate::metadata::{File, FileType};
 use std::path::PathBuf;
 
 #[derive(Debug)]
@@ -39,8 +38,8 @@ impl FileDescriptor {
         PathBuf::from(s)
     }
 
-    pub fn to_manifest_file(&self, file_type: FileType) -> ManifestFile {
-        ManifestFile {
+    pub fn to_manifest_file(&self, file_type: FileType) -> File {
+        File {
             file_name: self.file_name.clone(),
             directory: self.directory,
             locked: self.locked,

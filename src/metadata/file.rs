@@ -1,10 +1,11 @@
 use crate::dfs::{Address, Directory, FileDescriptor, FileName, FileSpec};
-use crate::file_type::FileType;
+use crate::metadata::FileType;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct ManifestFile {
+pub struct File {
+    #[allow(clippy::struct_field_names)]
     #[serde(rename = "fileName", alias = "file_name")]
     pub file_name: FileName,
 
@@ -27,7 +28,7 @@ pub struct ManifestFile {
     pub r#type: FileType,
 }
 
-impl ManifestFile {
+impl File {
     pub fn to_file_descriptor(&self) -> FileDescriptor {
         FileDescriptor {
             file_name: self.file_name.clone(),
@@ -39,7 +40,7 @@ impl ManifestFile {
     }
 }
 
-impl FileSpec for ManifestFile {
+impl FileSpec for File {
     fn directory(&self) -> &Directory {
         &self.directory
     }

@@ -1,5 +1,5 @@
 use crate::constants::MANIFEST_VERSION;
-use crate::manifest::Manifest;
+use crate::metadata::Manifest;
 use crate::ops::new_ssd;
 use anyhow::{Result, anyhow, bail};
 use std::fs::File;

@@ -2,8 +2,7 @@ use crate::dfs::{
     BootOption, Catalogue, CatalogueEntry, FileCount, FileDescriptor, FileSpec, Length,
     SECTOR_SIZE, START_SECTOR,
 };
-use crate::inf::read_inf_file;
-use crate::manifest::Manifest;
+use crate::metadata::{Manifest, read_inf_file};
 use crate::path_util::strip_extension;
 use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};

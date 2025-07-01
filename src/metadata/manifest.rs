@@ -1,5 +1,5 @@
 use crate::dfs::{BootOption, CycleNumber, DiscSize, DiscTitle};
-use crate::manifest_file::ManifestFile;
+use crate::metadata::File;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -32,5 +32,5 @@ pub struct Manifest {
     pub inf_files: Vec<PathBuf>,
 
     #[serde(rename = "files", skip_serializing_if = "Vec::is_empty")]
-    pub files: Vec<ManifestFile>,
+    pub files: Vec<File>,
 }
