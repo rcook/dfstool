@@ -11,7 +11,7 @@ use std::fs::{File, create_dir_all, metadata};
 use std::io::{Read, Write};
 use std::path::Path;
 
-pub fn new_ssd(
+pub fn new_image_file(
     output_path: &Path,
     overwrite: bool,
     manifest_dir: &Path,

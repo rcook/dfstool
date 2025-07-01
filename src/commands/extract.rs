@@ -25,89 +25,86 @@ pub fn run_extract(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result
     if path.extension().and_then(OsStr::to_str) == Some("zip") {
         extract_from_zip(path, output_dir, opts)?;
     } else {
-        extract_from_ssd(path, output_dir, opts)?;
+        extract_from_image(path, output_dir, opts)?;
     }
     Ok(())
 }
 
-// Zip file must contain exactly one .ssd file. All other files
+// Zip file must contain exactly one .ssd or dsd file. All other files
 // will be ignored.
-fn extract_from_zip(input_path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
-    let mut zip_file = match File::open(input_path) {
+fn extract_from_zip(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
+    let mut zip_f = match File::open(path) {
         Ok(f) => f,
-        Err(e) if e.kind() == ErrorKind::NotFound => bail!(
-            "input file {input_path} not found",
-            input_path = input_path.display()
-        ),
+        Err(e) if e.kind() == ErrorKind::NotFound => {
+            bail!("file {path} not found", path = path.display())
+        }
         Err(e) => bail!(e),
     };
 
-    let mut archive = ZipArchive::new(&mut zip_file)?;
-    let mut ssd_files = Vec::new();
+    let mut archive = ZipArchive::new(&mut zip_f)?;
+    let mut image_files = Vec::new();
     for i in 0..archive.len() {
         let file = archive.by_index(i)?;
         if file.is_file()
             && let Some(p) = file.enclosed_name()
-            && p.extension().and_then(OsStr::to_str) == Some("ssd")
         {
-            ssd_files.push((i, p));
+            let ext = p.extension().and_then(OsStr::to_str);
+            if ext == Some("dsd") || ext == Some("ssd") {
+                image_files.push((i, p));
+            }
         }
     }
 
-    let ssd_file_info = match ssd_files.len() {
+    let image_file_info = match image_files.len() {
         0 => bail!(
-            "no .ssd files found in archive {input_path}",
-            input_path = input_path.display()
+            "no disc images found in archive {path}",
+            path = path.display()
         ),
-        1 => ssd_files.first().unwrap(),
+        1 => image_files.first().unwrap(),
         _ => bail!(
-            "more than one .ssd file was found in archive {input_path}",
-            input_path = input_path.display()
+            "more than one disc image was found in archive {path}",
+            path = path.display()
         ),
     };
 
-    let mut archive_file = archive.by_index(ssd_file_info.0)?;
-    let mut input_file = tempfile()?;
-    copy(&mut archive_file, &mut input_file)?;
-    input_file.rewind()?;
+    let mut archive_file = archive.by_index(image_file_info.0)?;
+    let mut f = tempfile()?;
+    copy(&mut archive_file, &mut f)?;
+    f.rewind()?;
 
-    extract_files(input_path, output_dir, opts, input_file)
+    extract_files(path, output_dir, opts, f)
 }
 
-fn extract_from_ssd(input_path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
-    let input_file = match File::open(input_path) {
+fn extract_from_image(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
+    let f = match File::open(path) {
         Ok(f) => f,
-        Err(e) if e.kind() == ErrorKind::NotFound => bail!(
-            "input file {input_path} not found",
-            input_path = input_path.display()
-        ),
+        Err(e) if e.kind() == ErrorKind::NotFound => {
+            bail!("file {path} not found", path = path.display())
+        }
         Err(e) => bail!(e),
     };
 
-    extract_files(input_path, output_dir, opts, input_file)
+    extract_files(path, output_dir, opts, f)
 }
 
 fn extract_files<R: Read + Seek>(
-    input_path: &Path,
+    path: &Path,
     output_dir: &Path,
     opts: &ExtractOpts,
-    mut input_file: R,
+    mut f: R,
 ) -> Result<()> {
     if !output_dir.exists() {
         create_dir_all(output_dir)?;
     }
 
-    let catalogue = Catalogue::from_reader(&mut input_file)?;
+    let catalogue = Catalogue::from_reader(&mut f)?;
 
     let mut manifest_file_name = String::new();
-    manifest_file_name.push_str(input_path.file_stem().and_then(OsStr::to_str).ok_or_else(
-        || {
-            anyhow!(
-                "could not get file name from {input_path}",
-                input_path = input_path.display()
-            )
-        },
-    )?);
+    manifest_file_name.push_str(
+        path.file_stem()
+            .and_then(OsStr::to_str)
+            .ok_or_else(|| anyhow!("could not get file name from {path}", path = path.display()))?,
+    );
     manifest_file_name.push_str(".json");
     let manifest_path = output_dir.join(manifest_file_name);
 
@@ -117,7 +114,7 @@ fn extract_files<R: Read + Seek>(
     let extracted_files = entries
         .iter()
         .map(|entry| {
-            let file_type = extract_file(output_dir, opts, entry, &mut input_file)?;
+            let file_type = extract_file(output_dir, opts, entry, &mut f)?;
             Ok((entry, file_type))
         })
         .collect::<Result<Vec<_>>>()?;

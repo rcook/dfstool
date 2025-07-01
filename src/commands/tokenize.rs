@@ -5,9 +5,9 @@ use std::fs::File;
 use std::io::Read;
 use std::path::Path;
 
-pub fn run_tokenize(text_path: &Path, output_bbc_path: &Path, overwrite: bool) -> Result<()> {
-    let mut input_file = File::open(text_path)?;
-    let mut input_bytes = Vec::new();
-    input_file.read_to_end(&mut input_bytes)?;
-    tokenize_source(open_for_write(output_bbc_path, overwrite)?, &input_bytes)
+pub fn run_tokenize(path: &Path, output_path: &Path, overwrite: bool) -> Result<()> {
+    let mut f = File::open(path)?;
+    let mut bytes = Vec::new();
+    f.read_to_end(&mut bytes)?;
+    tokenize_source(open_for_write(output_path, overwrite)?, &bytes)
 }

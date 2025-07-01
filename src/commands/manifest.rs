@@ -11,31 +11,27 @@ use std::fs::read_dir;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
-pub fn run_manifest(
-    content_dir: &Path,
-    output_manifest_path: Option<&PathBuf>,
-    overwrite: bool,
-) -> Result<()> {
-    let dir_name = content_dir
+pub fn run_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -> Result<()> {
+    let dir_name = dir
         .file_name()
         .and_then(OsStr::to_str)
         .ok_or_else(|| anyhow!("cannot get directory name"))?;
 
     // If output path is not specified, then infer from the directory name
-    let output_path = if let Some(p) = output_manifest_path {
+    let output_path = if let Some(p) = output_path {
         p
     } else {
-        &content_dir.join(format!("{dir_name}.json"))
+        &dir.join(format!("{dir_name}.json"))
     };
 
     let manifest_dir = output_path
         .parent()
         .ok_or_else(|| anyhow!("cannot get parent directory"))?;
 
-    let d = match read_dir(content_dir) {
+    let d = match read_dir(dir) {
         Ok(d) => d,
         Err(e) if e.kind() == ErrorKind::NotFound => {
-            bail!("directory {dir} not found", dir = content_dir.display())
+            bail!("directory {dir} not found", dir = dir.display())
         }
         Err(e) => bail!(e),
     };

@@ -19,11 +19,11 @@ pub struct Args {
 pub enum Command {
     #[command(name = "detokenize", about = "Detokenize BBC BASIC program")]
     Detokenize {
-        #[arg(help = "Path to BBC BASIC input file", required = true, value_parser = parse_absolute_path)]
-        bbc_path: PathBuf,
+        #[arg(help = "Path to BBC BASIC file", required = true, value_parser = parse_absolute_path)]
+        path: PathBuf,
 
         #[arg(help = "Path to output text file", long = "output", short = 'o', value_parser = parse_absolute_path)]
-        output_text_path: Option<PathBuf>,
+        output_path: Option<PathBuf>,
 
         #[arg(
             help = "Overwrite output file if it already exists",
@@ -42,9 +42,9 @@ pub enum Command {
         lossless: bool,
     },
 
-    #[command(name = "extract", about = "Extract files and metadata from .ssd file")]
+    #[command(name = "extract", about = "Extract files and metadata from disc image")]
     Extract {
-        #[arg(help = "Path to input .ssd or .zip file", required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Path to disc image file", required = true, value_parser = parse_absolute_path)]
         path: PathBuf,
 
         #[arg(help = "Path to output directory", required = true, value_parser = parse_absolute_path)]
@@ -82,13 +82,13 @@ pub enum Command {
         inf: bool,
     },
 
-    #[command(name = "make", about = "Make .ssd file from files and metadata")]
+    #[command(name = "make", about = "Make disc image from files and metadata")]
     Make {
-        #[arg(help = "Path to input manifest", required = true, value_parser = parse_absolute_path)]
-        manifest_path: PathBuf,
+        #[arg(help = "Path to manifest", required = true, value_parser = parse_absolute_path)]
+        path: PathBuf,
 
-        #[arg(help = "Path to output .ssd file", required = true, value_parser = parse_absolute_path)]
-        output_ssd_path: PathBuf,
+        #[arg(help = "Path to output disc image file", required = true, value_parser = parse_absolute_path)]
+        output_path: PathBuf,
 
         #[arg(
             help = "Overwrite output file if it already exists",
@@ -105,10 +105,10 @@ pub enum Command {
     )]
     Manifest {
         #[arg(help = "Path to content directory", required = true, value_parser = parse_absolute_path)]
-        content_dir: PathBuf,
+        dir: PathBuf,
 
         #[arg(help = "Path to output manifest file", long = "output", short = 'o', value_parser = parse_absolute_path)]
-        output_manifest_path: Option<PathBuf>,
+        output_path: Option<PathBuf>,
 
         #[arg(
             help = "Overwrite output file if it already exists",
@@ -119,10 +119,10 @@ pub enum Command {
         overwrite: bool,
     },
 
-    #[command(name = "new", about = "Create a new, empty .ssd disc image")]
+    #[command(name = "new", about = "Create a new, empty disc image file")]
     New {
-        #[arg(help = "Path to output .ssd file", value_parser = parse_absolute_path)]
-        output_ssd_path: PathBuf,
+        #[arg(help = "Path to output disc image file", value_parser = parse_absolute_path)]
+        output_path: PathBuf,
 
         #[arg(help = "Size of new disc image in sectors", value_parser = parse_disc_size)]
         disc_size: Option<DiscSize>,
@@ -138,17 +138,17 @@ pub enum Command {
 
     #[command(name = "show", about = "Show catalogue")]
     Show {
-        #[arg(help = "Path to input .ssd file", required = true, value_parser = parse_absolute_path)]
-        ssd_path: PathBuf,
+        #[arg(help = "Path to disc image file", required = true, value_parser = parse_absolute_path)]
+        path: PathBuf,
     },
 
     #[command(name = "tokenize", about = "Tokenize BBC BASIC program")]
     Tokenize {
         #[arg(help = "Path to input text file", required = true, value_parser = parse_absolute_path)]
-        text_path: PathBuf,
+        path: PathBuf,
 
         #[arg(help = "Path to BBC BASIC output file", required = true, value_parser = parse_absolute_path)]
-        output_bbc_path: PathBuf,
+        output_path: PathBuf,
 
         #[arg(
             help = "Overwrite output file if it already exists",

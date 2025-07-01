@@ -9,11 +9,11 @@ use clap::Parser;
 pub fn run() -> Result<()> {
     match Args::parse().command {
         Command::Detokenize {
-            bbc_path,
-            output_text_path,
+            path,
+            output_path,
             overwrite,
             lossless,
-        } => run_detokenize(&bbc_path, output_text_path.as_ref(), overwrite, lossless)?,
+        } => run_detokenize(&path, output_path.as_ref(), overwrite, lossless)?,
         Command::Extract {
             path,
             output_dir,
@@ -32,26 +32,26 @@ pub fn run() -> Result<()> {
             },
         )?,
         Command::Make {
-            manifest_path,
-            output_ssd_path,
+            path,
+            output_path,
             overwrite,
-        } => run_make(&manifest_path, &output_ssd_path, overwrite)?,
+        } => run_make(&path, &output_path, overwrite)?,
         Command::New {
-            output_ssd_path,
+            output_path,
             disc_size,
             overwrite,
-        } => run_new(&output_ssd_path, disc_size, overwrite)?,
+        } => run_new(&output_path, disc_size, overwrite)?,
         Command::Manifest {
-            content_dir,
-            output_manifest_path,
+            dir,
+            output_path,
             overwrite,
-        } => run_manifest(&content_dir, output_manifest_path.as_ref(), overwrite)?,
-        Command::Show { ssd_path } => run_show(&ssd_path)?,
+        } => run_manifest(&dir, output_path.as_ref(), overwrite)?,
+        Command::Show { path: ssd_path } => run_show(&ssd_path)?,
         Command::Tokenize {
-            text_path,
-            output_bbc_path,
+            path,
+            output_path,
             overwrite,
-        } => run_tokenize(&text_path, &output_bbc_path, overwrite)?,
+        } => run_tokenize(&path, &output_path, overwrite)?,
     }
     Ok(())
 }

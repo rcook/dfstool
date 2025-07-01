@@ -6,15 +6,15 @@ use std::io::{Read, stdout};
 use std::path::{Path, PathBuf};
 
 pub fn run_detokenize(
-    bbc_path: &Path,
-    output_text_path: Option<&PathBuf>,
+    path: &Path,
+    output_path: Option<&PathBuf>,
     overwrite: bool,
     lossless: bool,
 ) -> Result<()> {
-    let mut f = File::open(bbc_path)?;
+    let mut f = File::open(path)?;
     let mut bytes = Vec::new();
     f.read_to_end(&mut bytes)?;
-    match output_text_path {
+    match output_path {
         Some(output_path) => {
             detokenize_source(open_for_write(output_path, overwrite)?, &bytes, lossless)?;
         }

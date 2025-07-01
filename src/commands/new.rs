@@ -1,18 +1,18 @@
 use crate::dfs::{BootOption, CycleNumber, DiscSize};
 use crate::metadata::Manifest;
-use crate::ops::new_ssd;
+use crate::ops::new_image_file;
 use anyhow::{Result, anyhow};
 use std::path::Path;
 
-pub fn run_new(output_ssd_path: &Path, disc_size: Option<DiscSize>, overwrite: bool) -> Result<()> {
-    let dir = output_ssd_path.parent().ok_or_else(|| {
+pub fn run_new(output_path: &Path, disc_size: Option<DiscSize>, overwrite: bool) -> Result<()> {
+    let dir = output_path.parent().ok_or_else(|| {
         anyhow!(
             "could not get directory from path {path}",
-            path = output_ssd_path.display()
+            path = output_path.display()
         )
     })?;
-    new_ssd(
-        output_ssd_path,
+    new_image_file(
+        output_path,
         overwrite,
         dir,
         Manifest {

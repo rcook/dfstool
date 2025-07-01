@@ -1,3 +1,3 @@
-mod new_ssd;
+mod new_image;
 
-pub use new_ssd::*;
+pub use new_image::*;
