@@ -1,6 +1,4 @@
-use crate::boot_option::BootOption;
-use crate::cycle_number::CycleNumber;
-use crate::disc_size::DiscSize;
+use crate::dfs::{BootOption, CycleNumber, DiscSize};
 use crate::manifest::Manifest;
 use crate::ops::new_ssd;
 use anyhow::{Result, anyhow};

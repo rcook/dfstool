@@ -1,8 +1,6 @@
 use crate::bbc_basic::{detokenize_source, is_bbc_basic_file};
-use crate::catalogue::Catalogue;
-use crate::catalogue_entry::CatalogueEntry;
 use crate::constants::{INF_EXT, LOSSLESS_BBC_BASIC_EXT, LOSSY_BBC_BASIC_EXT, MANIFEST_VERSION};
-use crate::file_spec::FileSpec;
+use crate::dfs::{Catalogue, CatalogueEntry, FileSpec};
 use crate::file_type::{FileType, KnownFileType};
 use crate::inf::make_inf_file;
 use crate::manifest::Manifest;

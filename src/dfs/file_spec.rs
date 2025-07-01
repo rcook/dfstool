@@ -1,5 +1,4 @@
-use crate::directory::Directory;
-use crate::file_name::FileName;
+use crate::dfs::{Directory, FileName};
 use std::cmp::Ordering;
 
 pub trait FileSpec {

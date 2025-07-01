@@ -1,4 +1,4 @@
-use crate::disc_size::DiscSize;
+use crate::dfs::DiscSize;
 use clap::{Parser, Subcommand};
 use path_absolutize::Absolutize;
 use std::path::PathBuf;

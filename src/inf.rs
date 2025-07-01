@@ -1,6 +1,4 @@
-use crate::catalogue_entry::CatalogueEntry;
-use crate::dfs_path::DfsPath;
-use crate::file_descriptor::FileDescriptor;
+use crate::dfs::{CatalogueEntry, DfsPath, FileDescriptor};
 use crate::util::open_for_write;
 use anyhow::{Result, bail};
 use std::fmt::Display;

@@ -1,4 +1,4 @@
-use crate::constants::DFS_TOTAL_FILES;
+use crate::dfs::DFS_TOTAL_FILES;
 use anyhow::{Error, bail};
 use std::convert::TryFrom;
 use std::result::Result as StdResult;

@@ -1,5 +1,4 @@
-use crate::catalogue_bytes::CatalogueBytes;
-use crate::constants::SECTOR_SIZE;
+use crate::dfs::{CatalogueBytes, SECTOR_SIZE};
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 

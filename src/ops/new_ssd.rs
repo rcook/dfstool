@@ -1,12 +1,8 @@
-use crate::boot_option::BootOption;
-use crate::catalogue::Catalogue;
-use crate::catalogue_entry::CatalogueEntry;
-use crate::constants::{SECTOR_SIZE, START_SECTOR};
-use crate::file_count::FileCount;
-use crate::file_descriptor::FileDescriptor;
-use crate::file_spec::FileSpec;
+use crate::dfs::{
+    BootOption, Catalogue, CatalogueEntry, FileCount, FileDescriptor, FileSpec, Length,
+    SECTOR_SIZE, START_SECTOR,
+};
 use crate::inf::read_inf_file;
-use crate::length::Length;
 use crate::manifest::Manifest;
 use crate::path_util::strip_extension;
 use crate::util::open_for_write;

@@ -1,5 +1,4 @@
-use crate::catalogue_bytes::CatalogueBytes;
-use crate::constants::SECTOR_SIZE;
+use crate::dfs::{CatalogueBytes, SECTOR_SIZE};
 use crate::util::is_disc_title_char;
 use anyhow::{Error, Result, bail};
 use serde::de::Error as SerdeError;

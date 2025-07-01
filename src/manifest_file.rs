@@ -1,8 +1,4 @@
-use crate::address::Address;
-use crate::directory::Directory;
-use crate::file_descriptor::FileDescriptor;
-use crate::file_name::FileName;
-use crate::file_spec::FileSpec;
+use crate::dfs::{Address, Directory, FileDescriptor, FileName, FileSpec};
 use crate::file_type::FileType;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

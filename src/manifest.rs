@@ -1,7 +1,5 @@
-use crate::disc_size::DiscSize;
-use crate::disc_title::DiscTitle;
+use crate::dfs::{BootOption, CycleNumber, DiscSize, DiscTitle};
 use crate::manifest_file::ManifestFile;
-use crate::{boot_option::BootOption, cycle_number::CycleNumber};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 

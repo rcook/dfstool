@@ -1,7 +1,4 @@
-use crate::address::Address;
-use crate::directory::Directory;
-use crate::file_name::FileName;
-use crate::file_spec::FileSpec;
+use crate::dfs::{Address, Directory, FileName, FileSpec};
 use crate::file_type::FileType;
 use crate::manifest_file::ManifestFile;
 use std::path::PathBuf;

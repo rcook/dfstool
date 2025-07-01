@@ -1,11 +1,7 @@
-use crate::boot_option::BootOption;
-use crate::catalogue_bytes::CatalogueBytes;
-use crate::catalogue_entry::CatalogueEntry;
-use crate::constants::SECTOR_SIZE;
-use crate::cycle_number::CycleNumber;
-use crate::disc_size::DiscSize;
-use crate::disc_title::DiscTitle;
-use crate::file_offset::FileOffset;
+use crate::dfs::{
+    BootOption, CatalogueBytes, CatalogueEntry, CycleNumber, DiscSize, DiscTitle, FileOffset,
+    SECTOR_SIZE,
+};
 use anyhow::{Result, bail};
 use std::fs::File;
 use std::io::Read;

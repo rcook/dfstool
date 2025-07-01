@@ -1,5 +1,4 @@
-use crate::catalogue_bytes::CatalogueBytes;
-use crate::constants::SECTOR_SIZE;
+use crate::dfs::{CatalogueBytes, SECTOR_SIZE};
 use anyhow::{Result, bail};
 use serde::de::Error as SerdeError;
 use serde::{Deserialize, Deserializer, Serialize};
@@ -77,7 +76,7 @@ impl<'de> Deserialize<'de> for CycleNumber {
 
 #[cfg(test)]
 mod tests {
-    use crate::cycle_number::CycleNumber;
+    use crate::dfs::CycleNumber;
     use anyhow::Result;
     use rstest::rstest;
 

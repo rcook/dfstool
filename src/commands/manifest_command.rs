@@ -1,10 +1,6 @@
 use crate::bbc_basic::is_bbc_basic_file;
-use crate::boot_option::BootOption;
 use crate::constants::{INF_EXT, MANIFEST_VERSION};
-use crate::cycle_number::CycleNumber;
-use crate::dfs_path::DfsPath;
-use crate::disc_size::DiscSize;
-use crate::file_spec::FileSpec;
+use crate::dfs::{BootOption, CycleNumber, DfsPath, DiscSize, FileSpec};
 use crate::file_type::{FileType, KnownFileType};
 use crate::manifest::Manifest;
 use crate::manifest_file::ManifestFile;

@@ -1,8 +1,4 @@
-use crate::catalogue_bytes::CatalogueBytes;
-use crate::constants::SECTOR_SIZE;
-use crate::file_descriptor::FileDescriptor;
-use crate::length::Length;
-use crate::start_sector::StartSector;
+use crate::dfs::{CatalogueBytes, FileDescriptor, Length, SECTOR_SIZE, StartSector};
 use anyhow::Result;
 
 #[derive(Debug)]
@@ -138,7 +134,7 @@ impl CatalogueEntry {
 
 #[cfg(test)]
 mod tests {
-    use crate::catalogue_entry::CatalogueEntry;
+    use crate::dfs::CatalogueEntry;
     use anyhow::Result;
     use rstest::rstest;
 

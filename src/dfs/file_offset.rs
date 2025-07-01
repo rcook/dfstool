@@ -1,6 +1,4 @@
-use crate::catalogue_bytes::CatalogueBytes;
-use crate::constants::SECTOR_SIZE;
-use crate::file_count::FileCount;
+use crate::dfs::{CatalogueBytes, FileCount, SECTOR_SIZE};
 use anyhow::{Result, bail};
 use std::convert::From;
 

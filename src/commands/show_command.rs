@@ -1,5 +1,4 @@
-use crate::catalogue::Catalogue;
-use crate::file_spec::FileSpec;
+use crate::dfs::{Catalogue, FileSpec};
 use anyhow::Result;
 use std::path::Path;
 
