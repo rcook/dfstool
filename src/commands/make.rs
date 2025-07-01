@@ -5,7 +5,7 @@ use anyhow::{Result, anyhow, bail};
 use std::fs::File;
 use std::path::Path;
 
-pub fn do_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Result<()> {
+pub fn run_make(manifest_path: &Path, output_path: &Path, overwrite: bool) -> Result<()> {
     let manifest_dir = manifest_path.parent().ok_or_else(|| {
         anyhow!(
             "cannot get parent directory from {manifest_path}",

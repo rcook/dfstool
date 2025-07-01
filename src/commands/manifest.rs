@@ -11,7 +11,7 @@ use std::fs::read_dir;
 use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
-pub fn do_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -> Result<()> {
+pub fn run_manifest(dir: &Path, output_path: Option<&PathBuf>, overwrite: bool) -> Result<()> {
     let dir_name = dir
         .file_name()
         .and_then(OsStr::to_str)

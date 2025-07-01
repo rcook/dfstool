@@ -21,7 +21,7 @@ pub struct ExtractOpts {
     pub inf: bool,
 }
 
-pub fn do_extract(input_path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
+pub fn run_extract(input_path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Result<()> {
     if input_path.extension().and_then(OsStr::to_str) == Some("zip") {
         extract_from_zip(input_path, output_dir, opts)?;
     } else {

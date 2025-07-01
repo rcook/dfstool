@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::{Read, stdout};
 use std::path::{Path, PathBuf};
 
-pub fn do_detokenize(
+pub fn run_detokenize(
     input_path: &Path,
     output_path: Option<&PathBuf>,
     overwrite: bool,
