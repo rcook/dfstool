@@ -7,7 +7,7 @@ Acorn DFS .ssd File Manager
 | Command      | Description                                                   |
 | ------------ | ------------------------------------------------------------- |
 | `detokenize` | Detokenize BBC BASIC program                                  |
-| `extract`    | Extract files and metadata from .ssd file                     |
+| `extract`    | Extract files and metadata from disc image file               |
 | `make`       | Make .ssd file from files and metadata                        |
 | `manifest`   | Generate a manifest file for the content in a given directory |
 | `show`       | Show catalogue                                                |
@@ -69,9 +69,9 @@ codes.
 
 ## The manifest
 
-The manifest is a JSON file that describes the contents of an .ssd file in
-terms of files on the current file system. Each file is described by a blob
-of JSON that looks like the following:
+The manifest is a JSON file that describes the contents of an .ssd or a
+single side of a .dsd file in terms of files on the current file system.
+Each file is described by a blob of JSON that looks like the following:
 
 ```json
 {

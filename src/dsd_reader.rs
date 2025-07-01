@@ -4,17 +4,19 @@ use anyhow::Result;
 use std::io::{Read, Seek, SeekFrom};
 
 pub struct DsdReader<R: Read + Seek> {
+    stream_len: u64,
     sector_bytes: SectorBytes,
     reader: R,
 }
 
 impl<R: Read + Seek> DsdReader<R> {
-    #[allow(unused)]
-    pub const fn new(mut reader: R, sector_bytes: SectorBytes) -> Self {
-        Self {
+    pub fn new(mut reader: R, sector_bytes: SectorBytes) -> Result<Self> {
+        let stream_len = reader.seek(SeekFrom::End(0))?;
+        Ok(Self {
+            stream_len,
             sector_bytes,
             reader,
-        }
+        })
     }
 
     fn read_single_sector(&mut self, side: Side, sector: usize, buffer: &mut [u8]) -> Result<()> {
@@ -36,6 +38,14 @@ impl<R: Read + Seek> DsdReader<R> {
 }
 
 impl<R: Read + Seek> ImageReader for DsdReader<R> {
+    fn sides(&self) -> u8 {
+        2
+    }
+
+    fn stream_len(&self) -> u64 {
+        self.stream_len
+    }
+
     fn sector_bytes(&self) -> SectorBytes {
         self.sector_bytes
     }

@@ -22,31 +22,36 @@ pub struct Catalogue {
 }
 
 impl Catalogue {
-    pub fn from_image_file(path: &Path) -> Result<Catalogue> {
+    pub fn from_image_file(path: &Path) -> Result<Vec<Catalogue>> {
         let f = File::open(path)?;
         match path.extension().and_then(OsStr::to_str) {
             Some("dsd") => {
-                let mut reader = DsdReader::new(f, SECTOR_BYTES);
+                let mut reader = DsdReader::new(f, SECTOR_BYTES)?;
                 Self::from_image_reader(&mut reader)
             }
             Some("ssd") => {
-                let mut reader = SsdReader::new(f, SECTOR_BYTES);
+                let mut reader = SsdReader::new(f, SECTOR_BYTES)?;
                 Self::from_image_reader(&mut reader)
             }
             _ => bail!("unsupported file type {path}", path = path.display()),
         }
     }
 
-    pub fn from_image_reader<R: ImageReader>(reader: &mut R) -> Result<Catalogue> {
+    pub fn from_image_reader<R: ImageReader>(reader: &mut R) -> Result<Vec<Catalogue>> {
         let sector_bytes = usize::from(reader.sector_bytes());
         let mut bytes = vec![0; sector_bytes * 2];
-        reader.read_bytes(0, SectorSize::ZERO, &mut bytes)?;
 
-        if !Self::is_valid_catalogue(&bytes) {
-            bail!("input file does not contain a valid disc image")
-        }
+        (0..reader.sides())
+            .map(|side| {
+                reader.read_bytes(side, SectorSize::ZERO, &mut bytes)?;
 
-        Self::from_catalogue_bytes(&bytes)
+                if !Self::is_valid_catalogue(&bytes) {
+                    bail!("input file does not contain a valid disc image")
+                }
+
+                Self::from_catalogue_bytes(&bytes)
+            })
+            .collect::<Result<Vec<_>>>()
     }
 
     #[allow(clippy::similar_names)]

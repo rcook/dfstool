@@ -1,6 +1,6 @@
 use crate::bbc_basic::{detokenize_source, is_bbc_basic_file};
 use crate::constants::{INF_EXT, LOSSLESS_BBC_BASIC_EXT, LOSSY_BBC_BASIC_EXT, MANIFEST_VERSION};
-use crate::dfs::{Catalogue, CatalogueEntry, FileSpec, SECTOR_BYTES};
+use crate::dfs::{Catalogue, CatalogueEntry, FileSpec, SECTOR_BYTES, Side};
 use crate::dsd_reader::DsdReader;
 use crate::image_reader::ImageReader;
 use crate::metadata::{FileType, KnownFileType, Manifest, make_inf_file};
@@ -10,8 +10,9 @@ use crate::util::open_for_write;
 use anyhow::{Result, anyhow, bail};
 use pathdiff::diff_paths;
 use std::ffi::OsStr;
+use std::fmt::Write as _;
 use std::fs::{File, create_dir_all};
-use std::io::{ErrorKind, Read, Seek, Write, copy};
+use std::io::{ErrorKind, Read, Write, copy};
 use std::path::{Path, PathBuf};
 use tempfile::tempfile;
 use zip::ZipArchive;
@@ -73,16 +74,15 @@ fn extract_from_zip(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Resul
     let mut archive_file = archive.by_index(image_file_info.0)?;
     let mut f = tempfile()?;
     copy(&mut archive_file, &mut f)?;
-    f.rewind()?;
 
     match image_file_info.1.extension().and_then(OsStr::to_str) {
         Some("dsd") => {
-            let reader = DsdReader::new(f, SECTOR_BYTES);
-            extract_files(path, output_dir, opts, reader)
+            let reader = DsdReader::new(f, SECTOR_BYTES)?;
+            extract_all(path, output_dir, opts, reader)
         }
         Some("ssd") => {
-            let reader = SsdReader::new(f, SECTOR_BYTES);
-            extract_files(path, output_dir, opts, reader)
+            let reader = SsdReader::new(f, SECTOR_BYTES)?;
+            extract_all(path, output_dir, opts, reader)
         }
         _ => bail!("unsupported file type {path}", path = path.display()),
     }
@@ -99,45 +99,58 @@ fn extract_from_image(path: &Path, output_dir: &Path, opts: &ExtractOpts) -> Res
 
     match path.extension().and_then(OsStr::to_str) {
         Some("dsd") => {
-            let reader = DsdReader::new(f, SECTOR_BYTES);
-            extract_files(path, output_dir, opts, reader)
+            let reader = DsdReader::new(f, SECTOR_BYTES)?;
+            extract_all(path, output_dir, opts, reader)
         }
         Some("ssd") => {
-            let reader = SsdReader::new(f, SECTOR_BYTES);
-            extract_files(path, output_dir, opts, reader)
+            let reader = SsdReader::new(f, SECTOR_BYTES)?;
+            extract_all(path, output_dir, opts, reader)
         }
         _ => bail!("unsupported file type {path}", path = path.display()),
     }
 }
 
-fn extract_files<R: ImageReader>(
+fn extract_all<R: ImageReader>(
     path: &Path,
     output_dir: &Path,
     opts: &ExtractOpts,
     mut reader: R,
 ) -> Result<()> {
-    if !output_dir.exists() {
-        create_dir_all(output_dir)?;
+    let catalogues = Catalogue::from_image_reader(&mut reader)?;
+    let double_sided = catalogues.len() > 1;
+    for (i, catalogue) in catalogues.into_iter().enumerate() {
+        let (output_dir, manifest_path) = if double_sided {
+            let output_dir = output_dir.join(format!("side{i}"));
+            let manifest_path = make_manifest_path(path, &output_dir, Some(u8::try_from(i)?))?;
+            (output_dir, manifest_path)
+        } else {
+            let manifest_path = make_manifest_path(path, output_dir, None)?;
+            (output_dir.to_path_buf(), manifest_path)
+        };
+
+        if !output_dir.exists() {
+            create_dir_all(&output_dir)?;
+        }
+
+        extract_single_side(catalogue, &manifest_path, &output_dir, opts, &mut reader)?;
     }
+    Ok(())
+}
 
-    let catalogue = Catalogue::from_image_reader(&mut reader)?;
-
-    let mut manifest_file_name = String::new();
-    manifest_file_name.push_str(
-        path.file_stem()
-            .and_then(OsStr::to_str)
-            .ok_or_else(|| anyhow!("could not get file name from {path}", path = path.display()))?,
-    );
-    manifest_file_name.push_str(".json");
-    let manifest_path = output_dir.join(manifest_file_name);
-
+fn extract_single_side<R: ImageReader>(
+    catalogue: Catalogue,
+    manifest_path: &Path,
+    output_dir: &Path,
+    opts: &ExtractOpts,
+    reader: &mut R,
+) -> Result<()> {
     let mut entries = catalogue.entries;
     entries.sort_by(|a, b| FileSpec::compare(&a.descriptor, &b.descriptor));
 
     let extracted_files = entries
         .iter()
         .map(|entry| {
-            let file_type = extract_file(output_dir, opts, entry, &mut reader)?;
+            let file_type = extract_file(output_dir, opts, entry, reader)?;
             Ok((entry, file_type))
         })
         .collect::<Result<Vec<_>>>()?;
@@ -162,7 +175,7 @@ fn extract_files<R: ImageReader>(
         (Vec::new(), files)
     };
 
-    let manifest_file = open_for_write(&manifest_path, opts.overwrite)?;
+    let manifest_file = open_for_write(manifest_path, opts.overwrite)?;
     serde_json::to_writer_pretty(
         manifest_file,
         &Manifest {
@@ -177,6 +190,20 @@ fn extract_files<R: ImageReader>(
     )?;
 
     Ok(())
+}
+
+fn make_manifest_path(path: &Path, output_dir: &Path, side: Option<Side>) -> Result<PathBuf> {
+    let mut file_name = String::new();
+    file_name.push_str(
+        path.file_stem()
+            .and_then(OsStr::to_str)
+            .ok_or_else(|| anyhow!("could not get file name from {path}", path = path.display()))?,
+    );
+    match side {
+        Some(side) => write!(file_name, "-side{side}.json")?,
+        None => file_name.push_str(".json"),
+    }
+    Ok(output_dir.join(file_name))
 }
 
 fn extract_file<R: ImageReader>(

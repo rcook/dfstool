@@ -5,7 +5,14 @@ use anyhow::{Error, Result};
 use std::path::Path;
 
 pub fn run_show(path: &Path) -> Result<()> {
-    let catalogue = Catalogue::from_image_file(path)?;
+    let catalogues = Catalogue::from_image_file(path)?;
+    for catalogue in catalogues {
+        show_catalogue(catalogue)?;
+    }
+    Ok(())
+}
+
+fn show_catalogue(catalogue: Catalogue) -> Result<()> {
     println!(
         "{label:<13}: {value}",
         label = "Title",
