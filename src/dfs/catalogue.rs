@@ -40,12 +40,7 @@ impl Catalogue {
     pub fn from_image_reader<R: ImageReader>(reader: &mut R) -> Result<Catalogue> {
         let sector_bytes = usize::from(reader.sector_bytes());
         let mut bytes = vec![0; sector_bytes * 2];
-        reader.read_bytes(0, SectorSize::ZERO, &mut bytes[0..sector_bytes])?;
-        reader.read_bytes(
-            0,
-            SectorSize::ONE,
-            &mut bytes[sector_bytes..sector_bytes * 2],
-        )?;
+        reader.read_bytes(0, SectorSize::ZERO, &mut bytes)?;
 
         if !Self::is_valid_catalogue(&bytes) {
             bail!("input file does not contain a valid disc image")
