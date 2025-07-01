@@ -1,4 +1,4 @@
-use crate::util::is_file_name_char;
+use crate::dfs::is_file_name_char;
 use anyhow::{Error, bail};
 use serde::de::Error as SerdeError;
 use serde::{Deserialize, Deserializer, Serialize};

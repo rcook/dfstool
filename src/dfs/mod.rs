@@ -16,6 +16,7 @@ mod file_offset;
 mod file_spec;
 mod length;
 mod start_sector;
+mod util;
 
 pub use address::*;
 pub use boot_option::*;
@@ -35,3 +36,4 @@ pub use file_offset::*;
 pub use file_spec::*;
 pub use length::*;
 pub use start_sector::*;
+pub use util::*;
