@@ -33,9 +33,10 @@ pub fn run() -> Result<()> {
         )?,
         Command::Make {
             path,
+            side_1_path,
             output_path,
             overwrite,
-        } => run_make(&path, &output_path, overwrite)?,
+        } => run_make(&path, side_1_path.as_ref(), &output_path, overwrite)?,
         Command::New {
             output_path,
             disc_size,

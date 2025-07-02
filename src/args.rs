@@ -84,10 +84,13 @@ pub enum Command {
 
     #[command(name = "make", about = "Make disc image from files and metadata")]
     Make {
-        #[arg(help = "Path to manifest", required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Path to manifest (side 0)", required = true, value_parser = parse_absolute_path)]
         path: PathBuf,
 
-        #[arg(help = "Path to output disc image file", required = true, value_parser = parse_absolute_path)]
+        #[arg(help = "Path to manifest (side 1)", required = false, value_parser = parse_absolute_path)]
+        side_1_path: Option<PathBuf>,
+
+        #[arg(help = "Path to output disc image file", long="output", short='o', required = true, value_parser = parse_absolute_path)]
         output_path: PathBuf,
 
         #[arg(
